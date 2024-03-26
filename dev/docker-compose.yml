@@ -1,0 +1,42 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    pull_policy: always
+    environment:
+      POSTGRES_USER: gitlab_suchmaschine
+      POSTGRES_PASSWORD: gitlab_suchmaschine
+    volumes:
+      - postgres-data:/var/lib/postgresql/data/
+    networks:
+      gitlab-suchmaschine:
+        ipv4_address: 172.52.0.10
+
+  gitlab:
+    image: gitlab/gitlab-ee:latest
+    pull_policy: always
+    environment:
+      GITLAB_OMNIBUS_CONFIG: |
+        external_url 'http://172.52.0.100'
+        gitlab_rails['gitlab_email_enabled'] = false
+    volumes:
+      - gitlab-config:/etc/gitlab/
+      - gitlab-logs:/var/log/gitlab/
+      - gitlab-data:/var/opt/gitlab/
+    networks:
+      gitlab-suchmaschine:
+        ipv4_address: 172.52.0.100
+    shm_size: 256m
+
+volumes:
+  postgres-data:
+  gitlab-config:
+  gitlab-logs:
+  gitlab-data:
+
+networks:
+  gitlab-suchmaschine:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.52.0.0/24
+          gateway: 172.52.0.1
