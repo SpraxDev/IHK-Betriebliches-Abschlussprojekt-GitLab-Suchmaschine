@@ -6,3 +6,51 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+
+model Repository {
+  projectId     Int    @id @map("gitlab_project_id")
+  displayName   String @map("display_name")
+  fullName      String @map("full_name")
+  defaultBranch String @map("default_branch")
+
+  commits         Commit[]
+  repositoryFiles RepositoryFiles[]
+
+  @@map("repositories")
+}
+
+model File {
+  sha256  Bytes  @id
+  content String
+
+  repositoryFiles RepositoryFiles[]
+
+  @@map("files")
+}
+
+model RepositoryFiles {
+  projectId  Int    @map("gitlab_project_id")
+  filePath   String
+  branch     String
+  fileSha256 Bytes  @map("file_sha256")
+
+  repository Repository @relation(fields: [projectId], references: [projectId])
+  file       File       @relation(fields: [fileSha256], references: [sha256])
+
+  @@id([projectId, filePath, branch])
+  @@map("repository_files")
+}
+
+model Commit {
+  projectId   Int    @map("gitlab_project_id")
+  gitObjectId String @map("git_object_id")
+  message     String
+  authorName  String @map("author_name")
+  authorEmail String @map("author_email")
+  diff        String
+
+  repository Repository @relation(fields: [projectId], references: [projectId])
+
+  @@id([projectId, gitObjectId])
+  @@map("commits")
+}
