@@ -33,6 +33,7 @@
   },
   "dependencies": {
     "@prisma/client": "5.11.0",
+    "@spraxdev/node-commons": "github:SpraxDev/Node-Commons#b29223e6d0f48e7c217f628d818251cbfeb62342",
     "reflect-metadata": "^0.2.1",
     "tsyringe": "^4.8.0"
   },
