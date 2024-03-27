@@ -32,7 +32,9 @@
     "npm": ">=10.0.0"
   },
   "dependencies": {
-    "@prisma/client": "5.11.0"
+    "@prisma/client": "5.11.0",
+    "reflect-metadata": "^0.2.1",
+    "tsyringe": "^4.8.0"
   },
   "devDependencies": {
     "@tsconfig/node20": "^20.1.3",
