@@ -21,8 +21,9 @@ model Repository {
 }
 
 model File {
-  sha256  Bytes  @id
-  content String
+  sha256    Bytes    @id
+  content   String
+  createdAt DateTime @default(now()) @map("created_at")
 
   repositoryFiles RepositoryFiles[]
 
@@ -30,10 +31,11 @@ model File {
 }
 
 model RepositoryFiles {
-  projectId  Int    @map("gitlab_project_id")
+  projectId  Int      @map("gitlab_project_id")
   filePath   String
   branch     String
-  fileSha256 Bytes  @map("file_sha256")
+  fileSha256 Bytes    @map("file_sha256")
+  updatedAt  DateTime @updatedAt @map("updated_at")
 
   repository Repository @relation(fields: [projectId], references: [projectId])
   file       File       @relation(fields: [fileSha256], references: [sha256])
