@@ -13,8 +13,9 @@ model Repository {
   fullName      String @map("full_name")
   defaultBranch String @map("default_branch")
 
-  commits         Commit[]
-  repositoryFiles RepositoryFiles[]
+  commits             Commit[]
+  repositoryFiles     RepositoryFiles[]
+  usersWithReadAccess User[]
 
   @@map("repositories")
 }
@@ -53,4 +54,10 @@ model Commit {
 
   @@id([projectId, gitObjectId])
   @@map("commits")
+}
+
+model User {
+  userId Int @id @map("user_id")
+
+  repositoriesWithReadAccess Repository[]
 }
