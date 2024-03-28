@@ -34,12 +34,14 @@
   "dependencies": {
     "@prisma/client": "5.11.0",
     "@spraxdev/node-commons": "github:SpraxDev/Node-Commons#b29223e6d0f48e7c217f628d818251cbfeb62342",
+    "adm-zip": "^0.5.12",
     "mime-types": "^2.1.35",
     "reflect-metadata": "^0.2.1",
     "tsyringe": "^4.8.0"
   },
   "devDependencies": {
     "@tsconfig/node20": "^20.1.3",
+    "@types/adm-zip": "^0.5.5",
     "@types/jest": "^29.5.12",
     "@types/mime-types": "^2.1.4",
     "@types/node": "^20.11.30",
