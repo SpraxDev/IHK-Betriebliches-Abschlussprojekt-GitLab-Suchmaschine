@@ -5,4 +5,5 @@ module.exports = {
   clearMocks: true,
   collectCoverageFrom: ['src/**/*.ts'],
   setupFiles: ['reflect-metadata'],
+  coverageDirectory: 'reports/coverage',
 };
