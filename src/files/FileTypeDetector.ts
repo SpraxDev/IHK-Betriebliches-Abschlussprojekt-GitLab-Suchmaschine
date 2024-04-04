@@ -1,5 +1,6 @@
 import * as MimeType from 'mime-types';
 import ChildProcess from 'node:child_process';
+import Os from 'os';
 import { singleton } from 'tsyringe';
 
 @singleton()
@@ -88,7 +89,13 @@ export default class FileTypeDetector {
         resolve();
       });
 
-      fileProcess.stdin.write(stdinData, () => fileProcess.stdin.end());
+
+      fileProcess.stdin.on('error', (err) => {
+        if ((err as any).errno !== Os.constants.errno.EPIPE) {
+          resolve(err);
+        }
+      });
+      fileProcess.stdin.end(stdinData);
     });
   }
 
