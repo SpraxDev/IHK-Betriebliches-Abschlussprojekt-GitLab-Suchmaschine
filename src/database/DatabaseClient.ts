@@ -3,6 +3,15 @@ import { singleton } from 'tsyringe';
 
 @singleton()
 export default class DatabaseClient extends PrismaClient {
+  constructor() {
+    super({
+      transactionOptions: {
+        maxWait: 10 * 1000,
+        timeout: 10 * 60 * 1000
+      }
+    });
+  }
+
   /**
    * (Workaround for https://github.com/prisma/prisma/issues/5598)
    */
