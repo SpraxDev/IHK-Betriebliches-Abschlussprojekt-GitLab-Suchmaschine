@@ -18,3 +18,23 @@
 * Make changes to the schema in `prisma/schema.prisma`
 * Run `prisma:migrate:dev` to apply the changes to the database
   * This will generate a new migration in `prisma/migrations/`
+
+## Search Query Syntax
+```bnf
+nonWhitespaceChar ::= (any printable character except ' ')
+escapedChar ::= '\' (any printable character)
+char ::= nonWhitespaceChar | escapedChar
+
+regex ::= '/' char+ '/'
+qualifier ::= char+ ':' (char+ | '"' char+ '"' | regex)
+word ::= char+ | '"' char+ '"' | qualifier | regex
+
+tokenizer output:
+word | '(' | ')' | '&&' | '||' | 'NOT'
+
+term ::= NOT? (word | '(' andOperation ')')
+orOperation ::= term ('||' term)*
+andOperation ::= orOperation ('&&' orOperation)*
+
+query ::= andOperation+
+```
