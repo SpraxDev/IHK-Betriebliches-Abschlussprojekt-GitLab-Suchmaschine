@@ -36,6 +36,7 @@
     "@prisma/client": "5.12.1",
     "@spraxdev/node-commons": "github:SpraxDev/Node-Commons#b29223e6d0f48e7c217f628d818251cbfeb62342",
     "adm-zip": "^0.5.12",
+    "fastify": "^4.26.2",
     "mime-types": "^2.1.35",
     "reflect-metadata": "^0.2.2",
     "tsyringe": "^4.8.0"
