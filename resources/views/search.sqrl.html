@@ -18,11 +18,11 @@
 
   {{ @if (it.queryUserInput) }}
   <div>
-    <h2>Search results</h2>
+    <h2>Search results ({{ it.results.length }} matches)</h2>
 
     {{ @if(it.results.length > 0) }}
     {{ @each(it.results) => result }}
-    // TODO
+    <div>File-Hash-With-Match: <pre style="display: inline">{{ result.sha256.toString('hex') }}</pre></div>
     {{/each}}
     {{#else}}
     <p>No results found</p>

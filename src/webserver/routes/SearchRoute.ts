@@ -2,6 +2,7 @@ import { FastifyInstance } from 'fastify';
 import { injectable } from 'tsyringe';
 import QueryParser from '../../search_query/parser/QueryParser';
 import QueryTokenizer from '../../search_query/parser/QueryTokenizer';
+import SearchQueryExecutor from '../../search_query/sql_builder/SearchQueryExecutor';
 import FastifyWebServer from '../FastifyWebServer';
 import SearchView from '../rendering/views/SearchView';
 
@@ -9,7 +10,8 @@ import SearchView from '../rendering/views/SearchView';
 export default class SearchRoute {
   constructor(
     private readonly searchView: SearchView,
-    private readonly queryTokenizer: QueryTokenizer
+    private readonly queryTokenizer: QueryTokenizer,
+    private readonly searchSqlQueryGenerator: SearchQueryExecutor
   ) {
   }
 
@@ -25,13 +27,17 @@ export default class SearchRoute {
             return;
           }
 
+          let searchResults;
           const queryTokens = this.queryTokenizer.tokenize(queryUserInput || '');
-//          const parsedQuery = new QueryParser(queryTokens).parseQuery();
+          if (queryTokens.length > 0) {
+            const parsedQuery = new QueryParser(queryTokens).parseQuery();
+            searchResults = await this.searchSqlQueryGenerator.generate(parsedQuery);
+          }
 
           return this.searchView.reply(reply, {
             queryUserInput: queryUserInput || '',
             tokenizedQuery: queryTokens,
-            results: []
+            results: searchResults ?? []
           });
         }
       });
