@@ -31,8 +31,8 @@ model File {
 }
 
 model RepositoryFiles {
-  projectId  Int      @map("gitlab_project_id")
-  filePath   String
+  projectId  Int      @map("project_id")
+  filePath   String   @map("file_path")
   branch     String
   fileSha256 Bytes    @map("file_sha256")
   updatedAt  DateTime @updatedAt @map("updated_at")
@@ -45,7 +45,7 @@ model RepositoryFiles {
 }
 
 model Commit {
-  projectId   Int    @map("gitlab_project_id")
+  projectId   Int    @map("project_id")
   gitObjectId String @map("git_object_id")
   message     String
   authorName  String @map("author_name")
