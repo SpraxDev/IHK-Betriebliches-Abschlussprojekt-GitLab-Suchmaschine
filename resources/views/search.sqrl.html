@@ -22,7 +22,13 @@
 
     {{ @if(it.results.length > 0) }}
     {{ @each(it.results) => result }}
-    <div>File-Hash-With-Match: <pre style="display: inline">{{ result.sha256.toString('hex') }}</pre></div>
+    <div>
+      ProjectId: {{ result.projectId }}<br>
+      FullName: {{ result.fullName }}<br>
+      DisplayName: {{ result.displayName }}<br>
+      // TODO: Datei-Ausschnitt zeigen und GitLab-Verlinkung
+    </div>
+    <hr>
     {{/each}}
     {{#else}}
     <p>No results found</p>

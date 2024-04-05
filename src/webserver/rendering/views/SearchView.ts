@@ -6,7 +6,11 @@ import AbstractView from './AbstractView';
 export type SearchTemplateData = {
   queryUserInput: string;
   tokenizedQuery: Token[];
-  results: unknown[];
+  results: {
+    projectId: number;
+    fullName: string;
+    displayName: string;
+  }[];
 };
 
 @singleton()
