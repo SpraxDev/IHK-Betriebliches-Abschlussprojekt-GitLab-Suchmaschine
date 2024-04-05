@@ -1,11 +1,12 @@
 import Fastify, { type FastifyError, FastifyInstance, type FastifyReply, type FastifyRequest } from 'fastify';
 import { singleton } from 'tsyringe';
+import SearchRoute from './routes/SearchRoute';
 
 @singleton()
 export default class FastifyWebServer {
   private readonly fastify: FastifyInstance;
 
-  constructor() {
+  constructor(searchRoute: SearchRoute) {
     this.fastify = Fastify({
       ignoreDuplicateSlashes: true,
       ignoreTrailingSlash: true,
@@ -25,6 +26,8 @@ export default class FastifyWebServer {
         .code(500)
         .send('Internal Server Error');
     });
+
+    this.setupRoutes(searchRoute);
   }
 
   async listen(host: string, port: number): Promise<void> {

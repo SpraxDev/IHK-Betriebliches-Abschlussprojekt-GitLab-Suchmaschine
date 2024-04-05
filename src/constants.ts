@@ -7,6 +7,7 @@ let appInfo: AppInfo;
 export const IS_PRODUCTION = process.env.NODE_ENV === 'production';
 export const APP_ROOT_DIR = Path.join(__dirname, '..');
 export const RESOURCE_DIR = Path.join(APP_ROOT_DIR, 'resources');
+export const RESOURCE_VIEWS_DIR = Path.join(RESOURCE_DIR, 'views');
 
 export async function getAppInfo(): Promise<Readonly<AppInfo>> {
   if (appInfo == null) {

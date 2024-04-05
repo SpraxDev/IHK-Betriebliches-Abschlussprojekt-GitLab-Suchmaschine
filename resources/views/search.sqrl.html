@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport"
+        content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Document</title>
+</head>
+<body>
+  <form method="get" action="/search">
+    <input type="text" name="q" placeholder="Search..." value="{{ it.queryUserInput }}" required>
+    <button type="submit">Search</button>
+  </form>
+
+  <!-- TODO: Hide into collapsable or allow front-end-js to color it inline or something -->
+  <pre>{{ it.tokenizedQuery | json }}</pre>
+
+  {{ @if (it.queryUserInput) }}
+  <div>
+    <h2>Search results</h2>
+
+    {{ @if(it.results.length > 0) }}
+    {{ @each(it.results) => result }}
+    // TODO
+    {{/each}}
+    {{#else}}
+    <p>No results found</p>
+    {{/if}}
+  </div>
+  {{/if}}
+</body>
+</html>
