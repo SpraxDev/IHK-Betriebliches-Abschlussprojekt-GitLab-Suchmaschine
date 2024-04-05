@@ -75,11 +75,14 @@ export default class GitLabApiClient {
   private readonly apiBaseUrl: string;
   private readonly apiToken: string;
 
-  private httpClient?: HttpClient;
+  private readonly httpClient: HttpClient;
 
   constructor(appConfig: AppConfiguration) {
     this.apiBaseUrl = `${appConfig.config.gitlab.apiUrl}/api/v4`;
     this.apiToken = appConfig.config.gitlab.apiToken;
+
+    const appInfo = getAppInfo();
+    this.httpClient = new HttpClient(HttpClient.generateUserAgent(appInfo.name, appInfo.version, true, appInfo.homepage));
   }
 
   fetchProjectList(topics: string[] = ['searchable']): Promise<Paginated<SimpleProject>> {
@@ -142,8 +145,7 @@ export default class GitLabApiClient {
       url += `${encodeURIComponent(parameterKey)}=${encodeURIComponent(parameterValue)}`;
     }
 
-    const httpClient = await this.getHttpClient();
-    return httpClient.get(url, { Authorization: `Bearer ${this.apiToken}` });
+    return this.httpClient.get(url, { Authorization: `Bearer ${this.apiToken}` });
   }
 
   private async parseLinkHeader(linkHeader: string): Promise<{ [key: string]: string }> {
@@ -161,15 +163,6 @@ export default class GitLabApiClient {
     }
 
     return links;
-  }
-
-  async getHttpClient(): Promise<HttpClient> {
-    if (this.httpClient == null) {
-      const appInfo = await getAppInfo();
-      this.httpClient = new HttpClient(HttpClient.generateUserAgent(appInfo.name, appInfo.version, true, appInfo.homepage));
-    }
-
-    return this.httpClient;
   }
 }
 

@@ -9,7 +9,7 @@ export const APP_ROOT_DIR = Path.join(__dirname, '..');
 export const RESOURCE_DIR = Path.join(APP_ROOT_DIR, 'resources');
 export const RESOURCE_VIEWS_DIR = Path.join(RESOURCE_DIR, 'views');
 
-export async function getAppInfo(): Promise<Readonly<AppInfo>> {
+export function getAppInfo(): Readonly<AppInfo> {
   if (appInfo == null) {
     appInfo = {
       name: 'UNKNOWN-APP-NAME',
@@ -19,7 +19,7 @@ export async function getAppInfo(): Promise<Readonly<AppInfo>> {
 
     const packageJsonPath = Path.join(APP_ROOT_DIR, 'package.json');
     if (Fs.existsSync(packageJsonPath)) {
-      const packageJson = await Fs.promises.readFile(packageJsonPath, { encoding: 'utf-8' });
+      const packageJson = Fs.readFileSync(packageJsonPath, { encoding: 'utf-8' });
       let parsedPackageJson = JSON.parse(packageJson);
 
       const parsedName = parsedPackageJson.name;

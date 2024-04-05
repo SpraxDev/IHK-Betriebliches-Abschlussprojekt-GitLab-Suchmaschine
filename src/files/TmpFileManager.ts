@@ -33,7 +33,7 @@ export default class TmpFileManager {
 
   private async getTmpRootDir(): Promise<string> {
     if (this.tmpRootDir == null) {
-      const namePrefix = `${(await getAppInfo()).name}-`;
+      const namePrefix = `${getAppInfo().name}-`;
       this.tmpRootDir = await Fs.promises.mkdtemp(Path.join(Os.tmpdir(), namePrefix));
     }
     return this.tmpRootDir;
