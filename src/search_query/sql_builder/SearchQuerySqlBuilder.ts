@@ -105,12 +105,27 @@ WHERE
     if (word.value.value == null) {
       throw new Error('Expected word to have a value');
     }
-    if (word.value.type !== TokenType.TEXT) {
-      throw new Error('Expected word to be of type TEXT: ' + word);
+
+    if (word.value.type === TokenType.TEXT) {
+      this.visitWordText(word.value.value);
+      return;
+    }
+    if (word.value.type === TokenType.REGEX) {
+      this.visitWordRegex(word.value.value);
+      return;
     }
 
-    const paramNumber = this.params.push(`%${this.escapeForLikePattern(word.value.value)}%`);
+    throw new Error('Unsupported word type: ' + word.value.type);
+  }
+
+  private visitWordText(wordValue: string): void {
+    const paramNumber = this.params.push(`%${this.escapeForLikePattern(wordValue)}%`);
     this.sql += ` files.content iLIKE $${paramNumber}`;
+  }
+
+  private visitWordRegex(wordValue: string): void {
+    const paramNumber = this.params.push(wordValue.substring(1, wordValue.length - 1));
+    this.sql += ` files.content ~* $${paramNumber}`;
   }
 
   private escapeForLikePattern(input: string): string {
