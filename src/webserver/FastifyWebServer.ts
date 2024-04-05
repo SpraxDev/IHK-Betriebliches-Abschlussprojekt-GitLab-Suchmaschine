@@ -70,4 +70,13 @@ export default class FastifyWebServer {
     reply.header('Allow', allowedMethods.join(', ').toUpperCase());
     reply.status(405);
   }
+
+  static extractQueryParam(request: FastifyRequest, key: string): string {
+    const value = (request.query as any)[key];
+    if (value != null && typeof value !== 'string') {
+      // TODO: BadRequestError to not send Error 500
+      throw new Error('Invalid value for query parameter ' + JSON.stringify(key));
+    }
+    return value ?? '';
+  }
 }

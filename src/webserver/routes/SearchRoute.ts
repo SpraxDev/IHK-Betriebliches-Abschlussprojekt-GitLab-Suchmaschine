@@ -1,4 +1,4 @@
-import { FastifyInstance, FastifyRequest } from 'fastify';
+import { FastifyInstance } from 'fastify';
 import { injectable } from 'tsyringe';
 import QueryTokenizer from '../../search_query/parser/QueryTokenizer';
 import SearchQueryExecutor from '../../search_query/sql_builder/SearchQueryExecutor';
@@ -18,7 +18,7 @@ export default class SearchRoute {
     server.all('/search', (request, reply): Promise<void> => {
       return FastifyWebServer.handleRestfully(request, reply, {
         get: async (): Promise<void> => {
-          const queryUserInput = this.extractQueryFromRequest(request);
+          const queryUserInput = FastifyWebServer.extractQueryParam(request, 'q');
           const queryTokens = this.queryTokenizer.tokenize(queryUserInput);
           const searchResults = await this.searchQueryExecutor.execute(queryTokens, 1);
 
@@ -34,13 +34,5 @@ export default class SearchRoute {
         }
       });
     });
-  }
-
-  private extractQueryFromRequest(request: FastifyRequest): string {
-    const queryUserInput = (request.query as any).q;
-    if (queryUserInput != null && typeof queryUserInput !== 'string') {
-      throw new Error('Invalid value for query parameter "q"');
-    }
-    return queryUserInput ?? '';
   }
 }
