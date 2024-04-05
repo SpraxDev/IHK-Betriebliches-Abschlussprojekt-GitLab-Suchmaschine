@@ -1,4 +1,4 @@
-import QueryTokenizer, { Token, TokenType } from '../../src/search_query/QueryTokenizer';
+import QueryTokenizer, { Token, TokenType } from '../../../src/search_query/parser/QueryTokenizer';
 
 const queryTokenizer = new QueryTokenizer();
 
