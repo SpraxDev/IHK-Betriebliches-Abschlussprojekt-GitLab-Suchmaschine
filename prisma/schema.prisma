@@ -62,4 +62,6 @@ model User {
   userId Int @id @map("user_id")
 
   repositoriesWithReadAccess Repository[]
+
+  @@map("users")
 }
