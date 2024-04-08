@@ -1,9 +1,13 @@
 import { singleton } from 'tsyringe';
 
 export type AppConfig = {
+  readonly sessionSecret: string;
+
   readonly gitlab: {
-    readonly apiUrl: string;
+    readonly apiUrl: string;  // TODO: rename into baseUrl
     readonly apiToken: string;
+    readonly clientId: string;
+    readonly clientSecret: string;
   }
 };
 
@@ -13,11 +17,15 @@ export default class AppConfiguration {
 
   constructor() {
     this.config = this.deepFreeze({
+      sessionSecret: process.env.SESSION_SECRET ?? '',
+
       gitlab: {
         apiUrl: this.parseGitLabBaseUrl(),
-        apiToken: process.env.GITLAB_API_TOKEN ?? ''
+        apiToken: process.env.GITLAB_API_TOKEN ?? '',
+        clientId: process.env.GITLAB_CLIENT_ID ?? '',
+        clientSecret: process.env.GITLAB_CLIENT_SECRET ?? ''
       }
-    });
+    } satisfies AppConfig);
   }
 
   private parseGitLabBaseUrl(): string {

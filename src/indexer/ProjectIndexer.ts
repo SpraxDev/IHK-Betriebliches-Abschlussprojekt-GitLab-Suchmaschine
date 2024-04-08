@@ -5,7 +5,8 @@ import { singleton } from 'tsyringe';
 import DatabaseClient from '../database/DatabaseClient';
 import TextFileDetector from '../files/TextFileDetector';
 import TmpFileManager from '../files/TmpFileManager';
-import GitLabApiClient, { Project } from './gitlab/GitLabApiClient';
+import AppGitLabApiClient from './gitlab/AppGitLabApiClient';
+import { Project } from './gitlab/GitLabApiClient';
 import ProjectIndexWriter from './ProjectIndexWriter';
 
 @singleton()
@@ -13,7 +14,7 @@ export default class ProjectIndexer {
   private static readonly MAX_FILE_SIZE = 25 * 1024 * 1024;
 
   constructor(
-    private readonly gitLabApiClient: GitLabApiClient,
+    private readonly appGitLabApiClient: AppGitLabApiClient,
     private readonly tmpFileManager: TmpFileManager,
     private readonly textFileDetector: TextFileDetector,
     private readonly databaseClient: DatabaseClient
@@ -21,7 +22,7 @@ export default class ProjectIndexer {
   }
 
   async fullIndex(projectId: number): Promise<void> {
-    const project = await this.gitLabApiClient.fetchProject(projectId);
+    const project = await this.appGitLabApiClient.fetchProject(projectId);
     if (project == null) {
       throw new Error(`Project with ID ${projectId} not found`);
     }
@@ -40,7 +41,7 @@ export default class ProjectIndexer {
 
       const tmpDir = await this.tmpFileManager.createTmpDir();
       const archiveZipPath = Path.join(tmpDir.path, 'archive.zip');
-      await this.gitLabApiClient.fetchProjectArchive(project.id, project.default_branch, archiveZipPath);
+      await this.appGitLabApiClient.fetchProjectArchive(project.id, project.default_branch, archiveZipPath);
 
       const zip = new AdmZip(archiveZipPath);
 

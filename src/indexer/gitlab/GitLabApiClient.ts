@@ -1,7 +1,5 @@
 import { HttpClient, HttpResponse } from '@spraxdev/node-commons';
 import Fs from 'node:fs';
-import { singleton } from 'tsyringe';
-import AppConfiguration from '../../config/AppConfiguration';
 import { getAppInfo } from '../../constants';
 
 export interface Namespace {
@@ -37,6 +35,16 @@ export interface SimpleProject {
   repository_storage: string;
 }
 
+export enum RoleAccessLevel {
+  NO_ACCESS = 0,
+  MINIMAL_ACCESS = 5,
+  GUEST = 10,
+  REPORTER = 20,
+  DEVELOPER = 30,
+  MAINTAINER = 40,
+  OWNER = 50
+}
+
 export interface Project extends SimpleProject {
   _links: { [key: string]: string };
   packages_enabled: boolean;
@@ -68,26 +76,27 @@ export interface Project extends SimpleProject {
   creator_id: number;
   description_html: string;
   updated_at: string;
+  permissions: {
+    project_access: { access_level: number, notification_level: number } | null;
+  };
 }
 
-@singleton()
 export default class GitLabApiClient {
-  private readonly apiBaseUrl: string;
-  private readonly apiToken: string;
+  protected readonly apiBaseUrl: string;
+  protected apiToken: string;
 
   private readonly httpClient: HttpClient;
 
-  constructor(appConfig: AppConfiguration) {
-    this.apiBaseUrl = `${appConfig.config.gitlab.apiUrl}/api/v4`;
-    this.apiToken = appConfig.config.gitlab.apiToken;
+  constructor(gitlabBaseUrl: string, apiToken: string) {
+    this.apiBaseUrl = `${gitlabBaseUrl}/api/v4`;
+    this.apiToken = apiToken;
 
     const appInfo = getAppInfo();
     this.httpClient = new HttpClient(HttpClient.generateUserAgent(appInfo.name, appInfo.version, true, appInfo.homepage));
   }
 
-  fetchProjectList(topics: string[] = ['searchable']): Promise<Paginated<SimpleProject>> {
-    return this.authorizedPaginatedGet<SimpleProject>(`${this.apiBaseUrl}/projects`, {
-      simple: true,
+  fetchProjectList(topics: string[] = ['searchable']): Promise<Paginated<Project>> {
+    return this.authorizedPaginatedGet<Project>(`${this.apiBaseUrl}/projects`, {
       topic: topics.join(','),
       order_by: 'last_activity_at',
       sort: 'desc',
@@ -168,7 +177,7 @@ export default class GitLabApiClient {
 
 export class Paginated<T> {
   private readonly items: T[];
-  public readonly fetchNextPage?: () => Promise<Paginated<T>>;
+  private readonly fetchNextPage?: () => Promise<Paginated<T>>;
 
   constructor(items: T[], fetchNextPage?: () => Promise<Paginated<T>>) {
     this.fetchNextPage = fetchNextPage;
@@ -188,6 +197,6 @@ export class Paginated<T> {
   }
 
   hasNextPage(): boolean {
-    return this.fetchNext != null;
+    return this.fetchNextPage != null;
   }
 }
