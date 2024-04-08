@@ -3,9 +3,11 @@ import FastifySession from '@fastify/session';
 import Fastify, { type FastifyError, FastifyInstance, type FastifyReply, type FastifyRequest } from 'fastify';
 import { singleton } from 'tsyringe';
 import AppConfiguration from '../config/AppConfiguration';
+import { IS_PRODUCTION } from '../constants';
 import LoginRoute from './routes/LoginRoute';
 import LogoutRoute from './routes/LogoutRoute';
 import SearchRoute from './routes/SearchRoute';
+import SessionPrismaStore from './SessionPrismaStore';
 
 declare module 'fastify' {
   interface Session {
@@ -22,6 +24,7 @@ export default class FastifyWebServer {
 
   constructor(
     appConfig: AppConfiguration,
+    sessionPrismaStore: SessionPrismaStore,
     searchRoute: SearchRoute,
     loginRoute: LoginRoute,
     logoutRoute: LogoutRoute
@@ -34,17 +37,27 @@ export default class FastifyWebServer {
     });
 
     this.fastify.register(FastifyCookie);
-    this.fastify.register(FastifySession, { secret: appConfig.config.sessionSecret });
+    this.fastify.register(FastifySession, {
+      secret: appConfig.config.sessionSecret,
+      cookie: {
+        httpOnly: true,
+        secure: IS_PRODUCTION,
+        sameSite: 'lax',
+        maxAge: 30 * 24 * 60 * 60 * 1000 /* 30d */
+      },
+      saveUninitialized: false,
+      store: sessionPrismaStore
+    });
 
     this.fastify.setNotFoundHandler((_request, reply) => {
-      reply
+      return reply
         .code(404)
         .send('Not Found');
     });
-    this.fastify.setErrorHandler((err: FastifyError, _req: FastifyRequest, reply: FastifyReply): void => {
+    this.fastify.setErrorHandler((err: FastifyError, _req: FastifyRequest, reply: FastifyReply) => {
       console.error(err);
 
-      reply
+      return reply
         .code(500)
         .send('Internal Server Error');
     });
@@ -67,8 +80,8 @@ export default class FastifyWebServer {
 
     this.fastify.all('/', (request, reply): Promise<void> => {
       return FastifyWebServer.handleRestfully(request, reply, {
-        get: () => {
-          reply.redirect(302, '/search');
+        get: async () => {
+          await reply.redirect(302, '/search');
         }
       });
     });
@@ -92,7 +105,7 @@ export default class FastifyWebServer {
     }
 
     reply.header('Allow', allowedMethods.join(', ').toUpperCase());
-    reply.status(405);
+    await reply.status(405);
   }
 
   static extractQueryParam(request: FastifyRequest, key: string): string {

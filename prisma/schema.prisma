@@ -65,3 +65,12 @@ model User {
 
   @@map("users")
 }
+
+model Sessions {
+  id      String   @id
+  data    Json
+  expires DateTime
+
+  @@index([expires])
+  @@map("sessions")
+}

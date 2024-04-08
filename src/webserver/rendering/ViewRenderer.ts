@@ -29,7 +29,7 @@ export default class ViewRenderer {
 
   async reply(reply: FastifyReply, viewTemplate: string, data: object = {}): Promise<void> {
     const html = await this.render(viewTemplate, data);
-    reply
+    await reply
       .type('text/html; charset=utf-8')
       .send(html);
   }

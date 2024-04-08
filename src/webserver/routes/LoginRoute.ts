@@ -24,7 +24,7 @@ export default class LoginRoute {
 
           if (error !== '') {
             const errorDescription = FastifyWebServer.extractQueryParam(request, 'error_description');
-            reply
+            await reply
               .status(400)
               .type('text/plain; charset=utf-8')
               .send(`${error} – ${errorDescription}`);
@@ -32,13 +32,13 @@ export default class LoginRoute {
           }
 
           if (code === '') {
-            reply.redirect(this.oAuthAuthenticator.getAuthorizeUrl());
+            await reply.redirect(this.oAuthAuthenticator.getAuthorizeUrl());
             return;
           }
 
           const exchangeResult = await this.oAuthAuthenticator.exchangeCode(code);
           if (exchangeResult == null) {
-            reply.redirect(this.oAuthAuthenticator.getAuthorizeUrl());
+            await reply.redirect(this.oAuthAuthenticator.getAuthorizeUrl());
             return;
           }
 
@@ -69,6 +69,7 @@ export default class LoginRoute {
             await userPermissionWriter.setRepositoriesWithReadAccess(exchangeResult.userId, projectsWithReadAccess);
           });
 
+          // FIXME: delete old session from database (https://github.com/fastify/session/issues/240)
           await request.session.regenerate();
           request.session.set('userId', gitlabUser.id);
           request.session.set('displayName', gitlabUser.name);
@@ -76,7 +77,7 @@ export default class LoginRoute {
           request.session.set('gitLabRefreshToken', exchangeResult.refresh_token);
           await request.session.save();
 
-          reply.redirect('/');
+          await reply.redirect('/');
         }
       });
     });

@@ -9,7 +9,7 @@ export default class LogoutRoute {
       return FastifyWebServer.handleRestfully(request, reply, {
         get: async (): Promise<void> => {
           await request.session.destroy();
-          reply.redirect('/');
+          await reply.redirect('/');
         }
       });
     });
