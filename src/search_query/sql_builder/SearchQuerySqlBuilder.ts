@@ -61,6 +61,8 @@ WHERE
       this.visitAnd(query.nodes[i]);
     }
     this.sql += ')';
+
+    this.sql += ' ORDER BY files.created_at DESC;';
   }
 
   private visitAnd(and: And): void {
