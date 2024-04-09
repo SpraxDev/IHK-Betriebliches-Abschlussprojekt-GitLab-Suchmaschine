@@ -1,24 +1,50 @@
-import type { Prisma } from '@prisma/client';
 import { singleton } from 'tsyringe';
 import DatabaseClient from '../../database/DatabaseClient';
-import QueryParser from '../parser/QueryParser';
+import QueryParser, { Query } from '../parser/QueryParser';
 import { Token } from '../parser/QueryTokenizer';
+import HighlightedHtmlGenerator, { HighlightedHtmlChunk } from '../result_highlighter/HighlightedHtmlGenerator';
+import SearchResultMatchFinder from '../result_highlighter/SearchResultMatchFinder';
 import SearchQuerySqlBuilder, { SearchQueryRow } from './SearchQuerySqlBuilder';
+
+export type SearchMatch = {
+  projectDisplayName: string;
+  urlToMatch: string;
+  filePath: string;
+  chunks: HighlightedHtmlChunk[];
+}
 
 @singleton()
 export default class SearchQueryExecutor {
   constructor(
-    private readonly prisma: DatabaseClient
+    private readonly prisma: DatabaseClient,
+    private readonly highlightedHtmlGenerator: HighlightedHtmlGenerator
   ) {
   }
 
-  execute(tokens: Token[], userId: number): Prisma.PrismaPromise<SearchQueryRow[]> | SearchQueryRow[] {
+  async execute(tokens: Token[], userId: number): Promise<SearchMatch[]> {
     if (tokens.length === 0) {
       return [];
     }
 
     const parsedQuery = new QueryParser(tokens).parseQuery();
     const sqlQuery = new SearchQuerySqlBuilder(parsedQuery, userId).get();
-    return this.prisma.$queryRawUnsafe(sqlQuery.sql, ...sqlQuery.params);
+    const searchResult = await this.prisma.$queryRawUnsafe<SearchQueryRow[]>(sqlQuery.sql, ...sqlQuery.params);
+
+    const searchMatches: SearchMatch[] = [];
+    for (const searchQueryRow of searchResult) {
+      searchMatches.push(this.transformToSearchMatches(parsedQuery, searchQueryRow));
+    }
+    return searchMatches;
+  }
+
+  private transformToSearchMatches(query: Query, searchResult: SearchQueryRow): SearchMatch {
+    const matchFinder = new SearchResultMatchFinder(query, searchResult.content);
+    const highlightedHtmlChunks = this.highlightedHtmlGenerator.generateHtml(searchResult.content, matchFinder.matches);
+    return {
+      projectDisplayName: searchResult.full_name,
+      urlToMatch: 'searchResult.urlToMatch',
+      filePath: searchResult.file_path,
+      chunks: highlightedHtmlChunks
+    };
   }
 }

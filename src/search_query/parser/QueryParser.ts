@@ -69,7 +69,7 @@ export class Term {
 export default class QueryParser {
   private readonly tokenStream: TokenStream;
 
-  get nextToken(): Token | null {
+  private get nextToken(): Token | null {
     return this.tokenStream.peek();
   }
 

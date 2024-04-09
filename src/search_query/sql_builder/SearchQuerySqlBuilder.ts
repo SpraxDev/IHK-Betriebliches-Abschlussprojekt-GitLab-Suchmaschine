@@ -11,6 +11,7 @@ export type SearchQueryRow = {
   display_name: string;
   full_name: string;
   file_path: string;
+  content: string;
 }
 
 export default class SearchQuerySqlBuilder {
@@ -19,7 +20,8 @@ SELECT
   repositories.gitlab_project_id,
   repositories.display_name,
   repositories.full_name,
-  repository_files.file_path
+  repository_files.file_path,
+  files.content
 FROM
   files
 INNER JOIN

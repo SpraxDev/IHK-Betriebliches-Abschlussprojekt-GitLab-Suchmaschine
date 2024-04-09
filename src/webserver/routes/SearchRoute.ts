@@ -18,18 +18,20 @@ export default class SearchRoute {
     server.all('/search', (request, reply): Promise<void> => {
       return FastifyWebServer.handleRestfully(request, reply, {
         get: async (): Promise<void> => {
+          const userId = request.session.get('userId');
+          if (userId == null) {
+            // TODO: Redirect to '/' instead and show a message that the user needs to log in with a button
+            return reply.redirect('/login');
+          }
+
           const queryUserInput = FastifyWebServer.extractQueryParam(request, 'q');
           const queryTokens = this.queryTokenizer.tokenize(queryUserInput);
-          const searchResults = await this.searchQueryExecutor.execute(queryTokens, 1);
+          const searchResults = await this.searchQueryExecutor.execute(queryTokens, userId);
 
           return this.searchView.reply(reply, {
             queryUserInput: queryUserInput,
             tokenizedQuery: queryTokens,
-            results: searchResults.map(v => ({
-              projectId: v.gitlab_project_id,
-              fullName: v.full_name,
-              displayName: v.display_name
-            }))
+            results: searchResults
           });
         }
       });
