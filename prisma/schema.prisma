@@ -1,10 +1,12 @@
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions"]
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider   = "postgresql"
+  url        = env("DATABASE_URL")
+  extensions = [pg_trgm]
 }
 
 model Repository {
@@ -26,12 +28,24 @@ model Repository {
 
 model File {
   sha256    Bytes    @id
-  content   String
   createdAt DateTime @default(now()) @map("created_at")
 
   repositoryFiles RepositoryFiles[]
+  fileChunks      FileChunks[]
 
   @@map("files")
+}
+
+model FileChunks {
+  fileSha256 Bytes  @map("file_sha256")
+  order      Int    @map("order")
+  content    String @map("content")
+
+  file File @relation(fields: [fileSha256], references: [sha256])
+
+  @@id([fileSha256, order])
+  @@index([content(ops: raw("gist_trgm_ops"))], type: Gist)
+  @@map("file_chunks")
 }
 
 model RepositoryFiles {

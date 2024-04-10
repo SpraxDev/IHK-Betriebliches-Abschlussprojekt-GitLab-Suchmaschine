@@ -16,14 +16,12 @@ export type SearchQueryRow = {
 }
 
 export default class SearchQuerySqlBuilder {
+  private static readonly FIELDS_TO_SELECT = ['repositories.full_name', 'repositories.default_branch', 'repositories.project_url', 'repositories.avatar_url', 'repository_files.file_path'];
+
   private sql = `
 SELECT
-  repositories.full_name,
-  repositories.default_branch,
-  repositories.project_url,
-  repositories.avatar_url,
-  repository_files.file_path,
-  files.content
+  ${SearchQuerySqlBuilder.FIELDS_TO_SELECT.join(', ')},
+  string_agg(file_chunks.content, '' ORDER BY file_chunks.order ASC) AS content
 FROM
   files
 INNER JOIN
@@ -32,6 +30,8 @@ INNER JOIN
   repositories ON repository_files.project_id = repositories.gitlab_project_id
 INNER JOIN
   "_RepositoryToUser" ON repositories.gitlab_project_id = "_RepositoryToUser"."A"
+INNER JOIN
+  file_chunks ON files.sha256 = file_chunks.file_sha256
 WHERE
   "_RepositoryToUser"."B" = $1`;
   private readonly params: (string | number)[] = [];
@@ -62,6 +62,7 @@ WHERE
     }
     this.sql += ')';
 
+    this.sql += ` GROUP BY ${SearchQuerySqlBuilder.FIELDS_TO_SELECT.join(', ')}, files.created_at`;
     this.sql += ' ORDER BY files.created_at DESC;';
   }
 
@@ -126,12 +127,12 @@ WHERE
 
   private visitWordText(wordValue: string): void {
     const paramNumber = this.params.push(`%${this.escapeForLikePattern(wordValue)}%`);
-    this.sql += ` files.content iLIKE $${paramNumber}`;
+    this.sql += ` file_chunks.content iLIKE $${paramNumber}`;
   }
 
   private visitWordRegex(wordValue: string): void {
     const paramNumber = this.params.push(wordValue.substring(1, wordValue.length - 1));
-    this.sql += ` files.content ~* $${paramNumber}`;
+    this.sql += ` file_chunks.content ~* $${paramNumber}`;
   }
 
   private escapeForLikePattern(input: string): string {

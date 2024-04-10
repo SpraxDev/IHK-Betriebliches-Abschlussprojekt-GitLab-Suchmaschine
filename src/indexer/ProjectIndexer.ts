@@ -92,7 +92,7 @@ export default class ProjectIndexer {
 
         console.log('Incremental indexing file', filePath);
         const fileSha256 = this.calculateSha256(fileContent);
-        await indexWriter.createOrUpdateFile(fileContent, fileSha256);
+        await indexWriter.createOrUpdateFile(fileSha256, fileContent.toString('utf-8'));
         await indexWriter.createOrUpdateRepositoryFile(project, filePath, fileSha256);
       }
 
@@ -130,7 +130,7 @@ export default class ProjectIndexer {
         }
 
         const fileSha256 = this.calculateSha256(fileContent);
-        await indexWriter.createOrUpdateFile(fileContent, fileSha256);
+        await indexWriter.createOrUpdateFile(fileSha256, fileContent.toString('utf-8'));
         await indexWriter.createOrUpdateRepositoryFile(project, filePath, fileSha256);
       }
 

@@ -1,8 +1,12 @@
 import { Prisma, PrismaClient } from '@prisma/client';
 import { ITXClientDenyList } from '@prisma/client/runtime/binary';
 import { Project } from './gitlab/GitLabApiClient';
+import UnicodeAwareStringChunker from './UnicodeAwareStringChunker';
 
 export default class ProjectIndexWriter {
+  private static readonly GIST_INDEX_MAX_BYTES = 8191;
+
+  private readonly stringChunker = new UnicodeAwareStringChunker();
   private readonly transaction: Omit<PrismaClient, ITXClientDenyList>;
 
   constructor(transaction: Omit<PrismaClient, ITXClientDenyList>) {
@@ -38,19 +42,42 @@ export default class ProjectIndexWriter {
     });
   }
 
-  async createOrUpdateFile(fileContent: Buffer, fileSha256: Buffer): Promise<void> {
+  async createOrUpdateFile(fileSha256: Buffer, content: string): Promise<void> {
     await this.transaction.file.upsert({
-      select: { sha256: true },
+      where: { sha256: fileSha256 },
+      create: { sha256: fileSha256 },
+      update: {},
 
-      where: {
-        sha256: fileSha256
-      },
-      create: {
-        sha256: fileSha256,
-        content: fileContent.toString('utf-8')
-      },
-      update: {}
+      select: { sha256: true }
     });
+
+    const fileExists = await this.transaction.fileChunks.findFirst({ where: { fileSha256 } });
+    if (fileExists) {
+      return;
+    }
+
+    const chunkedContent = this.stringChunker.chunk(content, ProjectIndexWriter.GIST_INDEX_MAX_BYTES);
+    for (let i = 0; i < chunkedContent.length; ++i) {
+      const chunk = chunkedContent[i];
+      await this.transaction.fileChunks.upsert({
+        select: { fileSha256: true },
+
+        where: {
+          fileSha256_order: {
+            fileSha256,
+            order: i
+          }
+        },
+        create: {
+          fileSha256,
+          order: i,
+          content: chunk
+        },
+        update: {
+          content: chunk
+        }
+      });
+    }
   }
 
   async createOrUpdateRepositoryFile(project: Project, filePath: string, fileSha256: Buffer): Promise<void> {
