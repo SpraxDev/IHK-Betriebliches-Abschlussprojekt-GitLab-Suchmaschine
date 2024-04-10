@@ -16,7 +16,7 @@ export default class SearchResultMatchFinder {
 
   constructor(query: Query, content: string) {
     this.content = content;
-    this.matches = this.mergeIntersectingMatches(this.visitQuery(query));
+    this.matches = this.mergeAndSortMatches(this.visitQuery(query));
   }
 
   private visitQuery(query: Query): Match[] {
@@ -39,7 +39,7 @@ export default class SearchResultMatchFinder {
     let matches: Match[] = this.visitOr(and.nodes[0]);
     for (let i = 1; i < and.nodes.length; ++i) {
       const orMatches = this.visitOr(and.nodes[i]);
-      matches = this.unionMatches(matches, orMatches);
+      matches = this.mergeMatches(matches, orMatches);
     }
     return matches;
   }
@@ -120,28 +120,34 @@ export default class SearchResultMatchFinder {
     return [...matches1, ...matches2.filter(match2 => !matches1.some(match1 => this.isEqualMatch(match1, match2)))];
   }
 
+  private mergeMatches(matches1: Match[], matches2: Match[]): Match[] {
+    return [...matches1, ...matches2];
+  }
+
   private isEqualMatch(match1: Match, match2: Match): boolean {
     return match1[0] === match2[0] && match1[1] === match2[1];
   }
 
-  private mergeIntersectingMatches(matches: Match[]): Match[] {
+  private mergeAndSortMatches(matches: Match[]): Match[] {
     const result: Match[] = [];
-    let prev: Match | null = null;
+
     for (const match of matches) {
-      if (prev == null) {
-        prev = match;
+      const existingThatEndsWhereMatchStarts = result.find(existing => existing[1] === match[0]);
+      if (existingThatEndsWhereMatchStarts != null) {
+        existingThatEndsWhereMatchStarts[1] = match[1];
         continue;
       }
-      if (match[0] <= prev[1]) {
-        prev[1] = Math.max(prev[1], match[1]);
-      } else {
-        result.push(prev);
-        prev = match;
+
+      const existingThatStartsWhereMatchEnds = result.find(existing => existing[0] === match[1]);
+      if (existingThatStartsWhereMatchEnds != null) {
+        existingThatStartsWhereMatchEnds[0] = match[0];
+        continue;
       }
+
+      result.push(match);
     }
-    if (prev != null) {
-      result.push(prev);
-    }
+
+    result.sort((a, b) => a[0] - b[0]);
     return result;
   }
 }
