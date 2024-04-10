@@ -1,4 +1,9 @@
 # GitLab-Suchmaschine
+## Project dependencies
+* Node.js and npm (see [package.json](./package.json))
+* A [PostgreSQL database](https://www.postgresql.org/) (developed with v16 but latest stable should be preferred)
+* [`file` command](https://astron.com/pub/file/) (developed with v5.4.5) (optional but recommended)
+
 ## Development
 
 ### Setup
