@@ -1,5 +1,6 @@
 import { Prisma, PrismaClient } from '@prisma/client';
 import { ITXClientDenyList } from '@prisma/client/runtime/binary';
+import Path from 'node:path';
 import { Project } from '../gitlab/GitLabApiClient';
 import UnicodeAwareStringChunker from './UnicodeAwareStringChunker';
 
@@ -94,6 +95,7 @@ export default class ProjectIndexWriter {
       create: {
         repository: { connect: { projectId: project.id } },
         filePath,
+        fileName: Path.basename(filePath),
         branch: project.default_branch,
         file: { connect: { sha256: fileSha256 } }
       },

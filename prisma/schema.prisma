@@ -51,6 +51,7 @@ model FileChunks {
 model RepositoryFiles {
   projectId  Int      @map("project_id")
   filePath   String   @map("file_path")
+  fileName   String   @map("file_name")
   branch     String
   fileSha256 Bytes    @map("file_sha256")
   updatedAt  DateTime @updatedAt @map("updated_at")
@@ -59,6 +60,8 @@ model RepositoryFiles {
   file       File       @relation(fields: [fileSha256], references: [sha256])
 
   @@id([projectId, filePath, branch])
+  @@index([filePath(ops: raw("gist_trgm_ops"))], type: Gist)
+  @@index([fileName(ops: raw("gist_trgm_ops"))], type: Gist)
   @@map("repository_files")
 }
 

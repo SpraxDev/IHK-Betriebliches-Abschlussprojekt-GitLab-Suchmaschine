@@ -1,10 +1,15 @@
 import { And, Or, Query, Term, Word } from '../parser/QueryParser';
 import { TokenType } from '../parser/QueryTokenizer';
+import RegExParser from '../parser/tokens/RegExParser';
+import TextParser from '../parser/tokens/TextParser';
 
 export type Match = [start: number, end: number];
 
 // FIXME: Does not really respect the AST/Query but just searches and highlights all text tokens
 export default class SearchResultMatchFinder {
+  private static readonly textParser = new TextParser();
+  private static readonly regExParser = new RegExParser();
+
   private readonly content: string;
 
   public readonly matches: Match[] = [];
@@ -74,10 +79,10 @@ export default class SearchResultMatchFinder {
     }
 
     if (word.value.type === TokenType.TEXT) {
-      return this.visitWordText(word.value.value);
+      return this.visitWordText(SearchResultMatchFinder.textParser.parse(word.value.value));
     }
     if (word.value.type === TokenType.REGEX) {
-      return this.visitWordRegex(word.value.value);
+      return this.visitWordRegex(SearchResultMatchFinder.regExParser.parse(word.value.value));
     }
     if (word.value.type === TokenType.QUALIFIER) {
       return [];
@@ -86,9 +91,9 @@ export default class SearchResultMatchFinder {
     throw new Error('Unsupported word type: ' + word.value.type);
   }
 
-  private visitWordText(wordValue: string): Match[] {
+  private visitWordText(parsedValue: string): Match[] {
     const lowerContent = this.content.toLowerCase();
-    const lowerWordValue = wordValue.toLowerCase();
+    const lowerWordValue = parsedValue.toLowerCase();
 
     const matches: Match[] = [];
     let index = 0;
@@ -100,14 +105,12 @@ export default class SearchResultMatchFinder {
     return matches;
   }
 
-  private visitWordRegex(wordValue: string): Match[] {
-    const pattern = wordValue.substring(1, wordValue.length - 1);
-    const regex = new RegExp(pattern, 'gi');
+  private visitWordRegex(pattern: RegExp): Match[] {
     const matches: Match[] = [];
 
     let match: RegExpExecArray | null;
-    while ((match = regex.exec(this.content)) !== null) {
-      matches.push([match.index, regex.lastIndex]);
+    while ((match = pattern.exec(this.content)) !== null) {
+      matches.push([match.index, pattern.lastIndex]);
     }
 
     return matches;

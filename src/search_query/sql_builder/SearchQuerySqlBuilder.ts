@@ -1,5 +1,8 @@
 import { And, Or, Query, Term, Word } from '../parser/QueryParser';
 import { TokenType } from '../parser/QueryTokenizer';
+import QualifierParser, { ParsedQualifier } from '../parser/tokens/QualifierParser';
+import RegExParser from '../parser/tokens/RegExParser';
+import TextParser from '../parser/tokens/TextParser';
 
 export type SearchQueryResult = {
   sql: string;
@@ -17,6 +20,9 @@ export type SearchQueryRow = {
 
 export default class SearchQuerySqlBuilder {
   private static readonly FIELDS_TO_SELECT = ['repositories.full_name', 'repositories.default_branch', 'repositories.project_url', 'repositories.avatar_url', 'repository_files.file_path'];
+  private static readonly textParser = new TextParser();
+  private static readonly regExParser = new RegExParser();
+  private static readonly qualifierParser = new QualifierParser();
 
   private sql = `
 SELECT
@@ -114,25 +120,46 @@ WHERE
     }
 
     if (word.value.type === TokenType.TEXT) {
-      this.visitWordText(word.value.value);
+      this.visitWordText(SearchQuerySqlBuilder.textParser.parse(word.value.value));
       return;
     }
     if (word.value.type === TokenType.REGEX) {
-      this.visitWordRegex(word.value.value);
+      this.visitWordRegex(SearchQuerySqlBuilder.regExParser.parse(word.value.value));
+      return;
+    }
+    if (word.value.type === TokenType.QUALIFIER) {
+      this.visitWordQualifier(SearchQuerySqlBuilder.qualifierParser.parse(word.value.value));
       return;
     }
 
     throw new Error('Unsupported word type: ' + word.value.type);
   }
 
-  private visitWordText(wordValue: string): void {
-    const paramNumber = this.params.push(`%${this.escapeForLikePattern(wordValue)}%`);
+  private visitWordText(parsedValue: string): void {
+    const paramNumber = this.params.push(`%${this.escapeForLikePattern(parsedValue)}%`);
     this.sql += ` file_chunks.content iLIKE $${paramNumber}`;
   }
 
-  private visitWordRegex(wordValue: string): void {
-    const paramNumber = this.params.push(wordValue.substring(1, wordValue.length - 1));
+  private visitWordRegex(pattern: RegExp): void {
+    const paramNumber = this.params.push(pattern.source);
     this.sql += ` file_chunks.content ~* $${paramNumber}`;
+  }
+
+  private visitWordQualifier(qualifier: ParsedQualifier): void {
+    if (qualifier.value.type === TokenType.TEXT) {
+      const value = qualifier.info.prepareValue(SearchQuerySqlBuilder.textParser.parse(qualifier.value.value!));
+      const paramNumber = this.params.push(qualifier.info.prepareForLike(this.escapeForLikePattern(value)));
+      this.sql += ` ${qualifier.info.databaseField} iLIKE $${paramNumber}`;
+      return;
+    }
+
+    if (qualifier.value.type === TokenType.REGEX) {
+      const paramNumber = this.params.push(SearchQuerySqlBuilder.regExParser.parse(qualifier.value.value!).source);
+      this.sql += ` ${qualifier.info.databaseField} ~* $${paramNumber}`;
+      return;
+    }
+
+    throw new Error('Unsupported qualifier value type: ' + qualifier.value.type);
   }
 
   private escapeForLikePattern(input: string): string {
