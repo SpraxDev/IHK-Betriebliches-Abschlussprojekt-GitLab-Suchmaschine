@@ -1,17 +1,14 @@
 import { FastifyInstance } from 'fastify';
 import { injectable } from 'tsyringe';
-import DatabaseClient from '../../database/DatabaseClient';
-import { RoleAccessLevel } from '../../indexer/gitlab/GitLabApiClient';
-import UserGitLabApiClient from '../../indexer/gitlab/UserGitLabApiClient';
 import OAuthAuthenticator from '../../login/OAuthAuthenticator';
-import UserPermissionWriter from '../../login/UserPermissionWriter';
+import UserPermissionUpdater from '../../login/UserPermissionUpdater';
 import FastifyWebServer from '../FastifyWebServer';
 
 @injectable()
 export default class LoginRoute {
   constructor(
     private readonly oAuthAuthenticator: OAuthAuthenticator,
-    private readonly databaseClient: DatabaseClient
+    private readonly userPermissionUpdater: UserPermissionUpdater
   ) {
   }
 
@@ -42,37 +39,12 @@ export default class LoginRoute {
             return;
           }
 
-          const userGitLabApiClient = UserGitLabApiClient.create(exchangeResult.access_token, exchangeResult.refresh_token);
-          const gitlabUser = await userGitLabApiClient.fetchUser();
-
-          const projectsWithReadAccess: number[] = [];
-          let projects = await userGitLabApiClient.fetchProjectList([]);
-          while (true) {
-            for (let project of projects.getItems()) {
-              const accessLevel = project.permissions?.project_access?.access_level ?? RoleAccessLevel.NO_ACCESS;
-              if ((gitlabUser.external && accessLevel >= RoleAccessLevel.REPORTER) ||
-                (!gitlabUser.external && accessLevel >= RoleAccessLevel.GUEST)) {
-                projectsWithReadAccess.push(project.id);
-              }
-            }
-
-            if (!projects.hasNextPage()) {
-              break;
-            }
-            projects = await projects.fetchNext();
-          }
-
-          await this.databaseClient.$transaction(async (transaction) => {
-            const userPermissionWriter = new UserPermissionWriter(transaction);
-
-            await userPermissionWriter.updateUser(exchangeResult.userId);
-            await userPermissionWriter.setRepositoriesWithReadAccess(exchangeResult.userId, projectsWithReadAccess);
-          });
+          await this.userPermissionUpdater.update(exchangeResult.userId, exchangeResult.access_token, exchangeResult.refresh_token);
 
           // FIXME: delete old session from database (https://github.com/fastify/session/issues/240)
           await request.session.regenerate();
-          request.session.set('userId', gitlabUser.id);
-          request.session.set('displayName', gitlabUser.name);
+          request.session.set('userId', exchangeResult.userId);
+          request.session.set('displayName', exchangeResult.displayName);
           request.session.set('gitLabAccessToken', exchangeResult.access_token);
           request.session.set('gitLabRefreshToken', exchangeResult.refresh_token);
           await request.session.save();
