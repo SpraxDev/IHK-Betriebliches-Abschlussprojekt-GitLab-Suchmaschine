@@ -1,7 +1,7 @@
 import { FastifyInstance } from 'fastify';
 import { injectable } from 'tsyringe';
 import QueryTokenizer from '../../search_query/parser/QueryTokenizer';
-import SearchQueryExecutor from '../../search_query/sql_builder/SearchQueryExecutor';
+import SearchQueryExecutor from '../../search_query/SearchQueryExecutor';
 import FastifyWebServer from '../FastifyWebServer';
 import SearchView from '../rendering/views/SearchView';
 

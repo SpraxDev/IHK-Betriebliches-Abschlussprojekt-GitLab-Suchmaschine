@@ -1,10 +1,10 @@
 import { singleton } from 'tsyringe';
-import DatabaseClient from '../../database/DatabaseClient';
-import QueryParser, { Query } from '../parser/QueryParser';
-import { Token } from '../parser/QueryTokenizer';
-import HighlightedHtmlGenerator, { HighlightedHtmlChunk } from '../result_highlighter/HighlightedHtmlGenerator';
-import SearchResultMatchFinder from '../result_highlighter/SearchResultMatchFinder';
-import SearchQuerySqlBuilder, { SearchQueryRow } from './SearchQuerySqlBuilder';
+import DatabaseClient from '../database/DatabaseClient';
+import QueryParser, { Query } from './parser/QueryParser';
+import { Token } from './parser/QueryTokenizer';
+import HighlightedHtmlGenerator, { HighlightedHtmlChunk } from './result_highlighter/HighlightedHtmlGenerator';
+import SearchResultMatchFinder from './result_highlighter/SearchResultMatchFinder';
+import SearchQuerySqlBuilder, { SearchQueryRow } from './sql_builder/SearchQuerySqlBuilder';
 
 export type SearchMatch = {
   projectGitLabUrl: string;
