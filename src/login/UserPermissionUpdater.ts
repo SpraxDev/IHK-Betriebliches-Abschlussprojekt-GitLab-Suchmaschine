@@ -17,7 +17,7 @@ export default class UserPermissionUpdater {
 
     // FIXME: Der Project-List Endpunkt kann nach `min_access_level` filtern - Stattdessen das benutzen
     const projectsWithReadAccess: number[] = [];
-    let projects = await userGitLabApiClient.fetchProjectList([]);
+    let projects = await userGitLabApiClient.fetchProjects();
     while (true) {
       for (let project of projects.getItems()) {
         const accessLevel = project.permissions?.project_access?.access_level ?? RoleAccessLevel.NO_ACCESS;

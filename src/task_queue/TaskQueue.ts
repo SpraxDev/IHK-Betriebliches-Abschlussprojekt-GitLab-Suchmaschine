@@ -5,15 +5,22 @@ export default class TaskQueue {
   private readonly queue: Task[] = [];
   private runningTask: Task | null = null;
 
-  add(task: Task): void {
-    for (const queuedTask of this.queue) {
-      if (queuedTask.equals(task)) {
-        return;
-      }
+  add(tasks: Task | Task[]): void {
+    if (!Array.isArray(tasks)) {
+      tasks = [tasks];
     }
 
-    this.queue.push(task);
-    this.queue.sort((a, b) => b.priority - a.priority);
+    for (const task of tasks) {
+      for (const queuedTask of this.queue) {
+        if (queuedTask.equals(task)) {
+          return;
+        }
+      }
+
+      this.queue.push(task);
+    }
+
+    this.queue.sort((a, b) => a.priority - b.priority);
 
     this.tickProcessing();
   }

@@ -125,9 +125,9 @@ export default class GitLabApiClient {
     this.httpClient = new HttpClient(HttpClient.generateUserAgent(appInfo.name, appInfo.version, true, appInfo.homepage));
   }
 
-  fetchProjectList(topics: string[] = ['searchable']): Promise<Paginated<Project>> {
+  fetchProjects(topic?: string): Promise<Paginated<Project>> {
     return this.authorizedPaginatedGet<Project>(`${this.apiBaseUrl}/projects`, {
-      topic: topics.join(','),
+      topic,
       order_by: 'last_activity_at',
       sort: 'desc',
       per_page: 100

@@ -17,6 +17,8 @@ export default class QueueAllProjectsForIndexingTask extends Task {
   }
 
   async run(): Promise<void> {
+    const tasksToQueue: Task[] = [];
+
     const projects = await this.findProjectsToIndex();
     for (const project of projects) {
       let taskPriority = TaskPriority.INCREMENTAL_INDEX;
@@ -24,8 +26,10 @@ export default class QueueAllProjectsForIndexingTask extends Task {
         taskPriority = TaskPriority.FULL_INDEX;
       }
 
-      this.taskQueue.add(new IndexProjectTask(project.id, taskPriority, this.projectIndexer));
+      tasksToQueue.push(new IndexProjectTask(project.id, taskPriority, this.projectIndexer));
     }
+
+    this.taskQueue.add(tasksToQueue);
   }
 
   equals(other: Task): boolean {
