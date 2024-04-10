@@ -1,8 +1,8 @@
 import { singleton } from 'tsyringe';
 import AppConfiguration from '../../config/AppConfiguration';
-import AppGitLabApiClient from '../../indexer/gitlab/AppGitLabApiClient';
-import { Project } from '../../indexer/gitlab/GitLabApiClient';
-import Paginated from '../../indexer/gitlab/Paginated';
+import AppGitLabApiClient from '../../gitlab/AppGitLabApiClient';
+import { Project } from '../../gitlab/GitLabApiClient';
+import Paginated from '../../gitlab/Paginated';
 import ProjectIndexer from '../../indexer/ProjectIndexer';
 import TaskQueue from '../TaskQueue';
 import IndexProjectTask from './IndexProjectTask';

@@ -1,5 +1,5 @@
 import { singleton } from 'tsyringe';
-import AppConfiguration from '../../config/AppConfiguration';
+import AppConfiguration from '../config/AppConfiguration';
 import GitLabApiClient from './GitLabApiClient';
 
 @singleton()

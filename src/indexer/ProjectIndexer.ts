@@ -6,8 +6,8 @@ import DatabaseClient from '../database/DatabaseClient';
 import TextFileDetector from '../files/TextFileDetector';
 import TmpFileManager from '../files/TmpFileManager';
 import { logAndCaptureError } from '../SentrySdk';
-import AppGitLabApiClient from './gitlab/AppGitLabApiClient';
-import { Project } from './gitlab/GitLabApiClient';
+import AppGitLabApiClient from '../gitlab/AppGitLabApiClient';
+import { Project } from '../gitlab/GitLabApiClient';
 import ProjectIndexWriter from './ProjectIndexWriter';
 
 // FIXME: Refactor class

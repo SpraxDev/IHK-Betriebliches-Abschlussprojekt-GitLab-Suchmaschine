@@ -1,6 +1,6 @@
 import { HttpResponse } from '@spraxdev/node-commons';
 import { container } from 'tsyringe';
-import AppConfiguration from '../../config/AppConfiguration';
+import AppConfiguration from '../config/AppConfiguration';
 import GitLabApiClient from './GitLabApiClient';
 
 export type GitLabUser = {

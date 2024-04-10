@@ -1,6 +1,6 @@
 import { Prisma, PrismaClient } from '@prisma/client';
 import { ITXClientDenyList } from '@prisma/client/runtime/binary';
-import { Project } from './gitlab/GitLabApiClient';
+import { Project } from '../gitlab/GitLabApiClient';
 import UnicodeAwareStringChunker from './UnicodeAwareStringChunker';
 
 export default class ProjectIndexWriter {

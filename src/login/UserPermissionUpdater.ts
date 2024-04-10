@@ -1,7 +1,7 @@
 import { singleton } from 'tsyringe';
 import DatabaseClient from '../database/DatabaseClient';
-import { RoleAccessLevel } from '../indexer/gitlab/GitLabApiClient';
-import UserGitLabApiClient from '../indexer/gitlab/UserGitLabApiClient';
+import { RoleAccessLevel } from '../gitlab/GitLabApiClient';
+import UserGitLabApiClient from '../gitlab/UserGitLabApiClient';
 import UserPermissionWriter from './UserPermissionWriter';
 
 @singleton()

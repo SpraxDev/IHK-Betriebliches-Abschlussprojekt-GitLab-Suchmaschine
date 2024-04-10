@@ -1,6 +1,6 @@
 import { HttpClient, HttpResponse } from '@spraxdev/node-commons';
 import Fs from 'node:fs';
-import { getAppInfo } from '../../constants';
+import { getAppInfo } from '../constants';
 import Paginated from './Paginated';
 
 export interface Namespace {
