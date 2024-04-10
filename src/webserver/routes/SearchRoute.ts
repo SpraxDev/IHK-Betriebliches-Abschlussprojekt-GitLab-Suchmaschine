@@ -4,6 +4,7 @@ import QueryTokenizer from '../../search_query/parser/QueryTokenizer';
 import SearchQueryExecutor from '../../search_query/SearchQueryExecutor';
 import FastifyWebServer from '../FastifyWebServer';
 import SearchView from '../rendering/views/SearchView';
+import * as Sentry from '@sentry/node';
 
 @injectable()
 export default class SearchRoute {
@@ -24,7 +25,10 @@ export default class SearchRoute {
             return reply.redirect('/login');
           }
 
+
           const queryUserInput = FastifyWebServer.extractQueryParam(request, 'q');
+          Sentry.getActiveSpan()?.setAttribute('search.query', queryUserInput);
+
           const queryTokens = this.queryTokenizer.tokenize(queryUserInput);
           const searchResults = await this.searchQueryExecutor.execute(queryTokens, userId);
 

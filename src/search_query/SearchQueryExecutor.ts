@@ -1,3 +1,4 @@
+import * as Sentry from '@sentry/node';
 import { singleton } from 'tsyringe';
 import DatabaseClient from '../database/DatabaseClient';
 import QueryParser, { Query } from './parser/QueryParser';
@@ -30,6 +31,9 @@ export default class SearchQueryExecutor {
 
     const parsedQuery = new QueryParser(tokens).parseQuery();
     const sqlQuery = new SearchQuerySqlBuilder(parsedQuery, userId).get();
+    Sentry.getActiveSpan()?.setAttribute('search.sql', sqlQuery.sql);
+    Sentry.getActiveSpan()?.setAttribute('search.sql.params', JSON.stringify(sqlQuery.params));
+
     const searchResult = await this.prisma.$queryRawUnsafe<SearchQueryRow[]>(sqlQuery.sql, ...sqlQuery.params);
 
     const searchMatches: SearchMatch[] = [];
