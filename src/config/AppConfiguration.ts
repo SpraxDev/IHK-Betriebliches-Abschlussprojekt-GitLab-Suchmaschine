@@ -18,20 +18,20 @@ export default class AppConfiguration {
 
   constructor() {
     this.config = this.deepFreeze({
-      sentryDsn: process.env.SENTRY_DSN ?? '',
-      sessionSecret: process.env.SESSION_SECRET ?? '',
+      sentryDsn: this.getAndRemoveEnvVar('SENTRY_DSN') ?? '',
+      sessionSecret: this.getAndRemoveEnvVar('SESSION_SECRET') ?? '',
 
       gitlab: {
         apiUrl: this.parseGitLabBaseUrl(),
-        apiToken: process.env.GITLAB_API_TOKEN ?? '',
-        clientId: process.env.GITLAB_CLIENT_ID ?? '',
-        clientSecret: process.env.GITLAB_CLIENT_SECRET ?? ''
+        apiToken: this.getAndRemoveEnvVar('GITLAB_API_TOKEN') ?? '',
+        clientId: this.getAndRemoveEnvVar('GITLAB_CLIENT_ID') ?? '',
+        clientSecret: this.getAndRemoveEnvVar('GITLAB_CLIENT_SECRET') ?? ''
       }
     } satisfies AppConfig);
   }
 
   private parseGitLabBaseUrl(): string {
-    const baseUrl = process.env.GITLAB_BASE_URL;
+    const baseUrl = this.getAndRemoveEnvVar('GITLAB_BASE_URL');
     if (baseUrl == null) {
       return '';
     }
@@ -40,6 +40,12 @@ export default class AppConfiguration {
       return baseUrl.slice(0, -1);
     }
     return baseUrl;
+  }
+
+  private getAndRemoveEnvVar(name: string): string | undefined {
+    const value = process.env[name];
+    delete process.env[name];
+    return value;
   }
 
   private deepFreeze(obj: any): any {
