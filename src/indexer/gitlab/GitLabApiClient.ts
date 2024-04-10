@@ -82,6 +82,35 @@ export interface Project extends SimpleProject {
   };
 }
 
+export interface Commit {
+  id: string;
+  short_id: string;
+  title: string;
+  author_name: string;
+  author_email: string;
+  created_at: string;
+}
+
+export interface CompareDiff {
+  old_path: string;
+  new_path: string;
+  a_mode: string | null;
+  b_mode: string | null;
+  diff: string | '';
+  new_file: boolean;
+  renamed_file: boolean;
+  deleted_file: boolean;
+}
+
+export interface ProjectCompare {
+  commit: Commit;
+  commits: Commit[];
+  diffs: CompareDiff[];
+  compare_timeout: boolean;
+  compare_same_ref: boolean;
+  web_url: string;
+}
+
 export default class GitLabApiClient {
   protected readonly apiBaseUrl: string;
   protected apiToken: string;
@@ -126,6 +155,15 @@ export default class GitLabApiClient {
     }
 
     await Fs.promises.writeFile(targetPath, apiRequest.body);
+  }
+
+  async compareProjectRefs(projectId: number, from: string, to: string): Promise<ProjectCompare> {
+    const apiRequest = await this.authorizedGet(`${this.apiBaseUrl}/projects/${projectId}/repository/compare?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`);
+    if (!apiRequest.ok) {
+      throw new Error(`Failed to fetch project compare for ID ${projectId} and refs {from}..{to} (Status ${apiRequest.status})`);
+    }
+
+    return JSON.parse(apiRequest.body.toString('utf-8'));
   }
 
   async authorizedPaginatedGet<T>(url: string, parameters: { [key: string]: any } = {}): Promise<Paginated<T>> {

@@ -76,8 +76,22 @@ export default class ProjectIndexWriter {
     });
   }
 
+  async deleteRepositoryFiles(projectId: number, branch: string, filePaths: string[]): Promise<void> {
+    await this.transaction.repositoryFiles.deleteMany({
+      where: {
+        projectId,
+        branch,
+        filePath: { in: filePaths }
+      }
+    });
+  }
+
   async cleanupOutdatedAndOrphanedFiles(projectId: number, defaultBranch: string, startOfIndexing: Date): Promise<void> {
     await this.createQueryToDeleteOutdatedRepositoryFiles(projectId, defaultBranch, startOfIndexing);
+    await this.createQueryToDeleteOrphanedFiles(startOfIndexing);
+  }
+
+  async cleanupOrphanedFiles(startOfIndexing: Date): Promise<void> {
     await this.createQueryToDeleteOrphanedFiles(startOfIndexing);
   }
 
