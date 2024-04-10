@@ -21,14 +21,9 @@ export default class ProjectIndexer {
   ) {
   }
 
-  async fullIndex(projectId: number): Promise<void> {
-    const project = await this.appGitLabApiClient.fetchProject(projectId);
-    if (project == null) {
-      throw new Error(`Project with ID ${projectId} not found`);
-    }
-
-    console.log(`Indexing project ${project.path_with_namespace}...`);
-    await this.performFullIndex(project);
+  async indexProject(projectId: number): Promise<void> {
+    const project = await this.fetchProject(projectId);
+    return this.performFullIndex(project);
   }
 
   private async performFullIndex(project: Project): Promise<void> {
@@ -37,13 +32,15 @@ export default class ProjectIndexer {
     await this.databaseClient.$transaction(async (transaction) => {
       const indexWriter = new ProjectIndexWriter(transaction);
 
-      await indexWriter.createOrUpdateRepository(project);
-
       const tmpDir = await this.tmpFileManager.createTmpDir();
       const archiveZipPath = Path.join(tmpDir.path, 'archive.zip');
       await this.appGitLabApiClient.fetchProjectArchive(project.id, project.default_branch, archiveZipPath);
 
       const zip = new AdmZip(archiveZipPath);
+      const projectRef = zip.getZipComment();
+      this.assertLooksLikeGitObjectId(projectRef);
+
+      await indexWriter.createOrUpdateRepository(project, projectRef, startOfIndexing);
 
       const zipEntries = zip.getEntries();
       for (const zipEntry of zipEntries) {
@@ -68,9 +65,23 @@ export default class ProjectIndexer {
     });
   }
 
+  private async fetchProject(projectId: number): Promise<Project> {
+    const project = await this.appGitLabApiClient.fetchProject(projectId);
+    if (project == null) {
+      throw new Error(`Project with ID ${projectId} not found`);
+    }
+    return project;
+  }
+
   private calculateSha256(file: Buffer): Buffer {
     return Crypto.createHash('sha256')
       .update(file)
       .digest();
+  }
+
+  private assertLooksLikeGitObjectId(ref: string): void {
+    if (!/^[0-9a-f]{40}$/.test(ref)) {
+      throw new Error(`Invalid Git object ID: ${ref}`);
+    }
   }
 }

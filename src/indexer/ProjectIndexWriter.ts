@@ -9,7 +9,7 @@ export default class ProjectIndexWriter {
     this.transaction = transaction;
   }
 
-  async createOrUpdateRepository(project: Project): Promise<void> {
+  async createOrUpdateRepository(project: Project, lastIndexedRef: string, lastIndexedAt: Date): Promise<void> {
     await this.transaction.repository.upsert({
       select: { projectId: true },
 
@@ -21,6 +21,8 @@ export default class ProjectIndexWriter {
         defaultBranch: project.default_branch,
         displayName: project.name,
         fullName: project.path_with_namespace, // TODO: rename fullName to fullPath
+        lastIndexedRef,
+        lastIndexedAt,
         projectUrl: project.web_url,
         avatarUrl: project.avatar_url
       },
@@ -28,6 +30,8 @@ export default class ProjectIndexWriter {
         defaultBranch: project.default_branch,
         displayName: project.name,
         fullName: project.path_with_namespace,
+        lastIndexedRef,
+        lastIndexedAt,
         projectUrl: project.web_url,
         avatarUrl: project.avatar_url
       }

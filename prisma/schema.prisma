@@ -8,12 +8,14 @@ datasource db {
 }
 
 model Repository {
-  projectId     Int     @id @map("gitlab_project_id")
-  displayName   String  @map("display_name")
-  fullName      String  @map("full_name")
-  defaultBranch String  @map("default_branch")
-  projectUrl    String  @map("project_url")
-  avatarUrl     String? @map("avatar_url")
+  projectId      Int       @id @map("gitlab_project_id")
+  displayName    String    @map("display_name")
+  fullName       String    @map("full_name")
+  defaultBranch  String    @map("default_branch")
+  lastIndexedRef String?   @map("last_indexed_ref")
+  lastIndexedAt  DateTime? @map("last_indexed_at")
+  projectUrl     String    @map("project_url")
+  avatarUrl      String?   @map("avatar_url")
 
   commits             Commit[]
   repositoryFiles     RepositoryFiles[]
