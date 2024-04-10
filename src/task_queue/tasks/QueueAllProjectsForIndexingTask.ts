@@ -40,16 +40,25 @@ export default class QueueAllProjectsForIndexingTask extends Task {
   }
 
   private async findProjectsToIndex(): Promise<Project[]> {
-    const projects: Project[] = [];
+    const projects = new Map<number, Project>();
 
     const topicsToIndex = this.appConfiguration.config.projectsToIndex.topics;
-    if (topicsToIndex.length > 0) {
-      for (const topic of topicsToIndex) {
-        projects.push(...(await this.fetchAllPaginatedItems(this.gitLabApiClient.fetchProjects(topic))));
+    for (const topic of topicsToIndex) {
+      const result = await this.fetchAllPaginatedItems(this.gitLabApiClient.fetchProjects({ topic }));
+      for (const p of result) {
+        projects.set(p.id, p);
       }
     }
 
-    return projects;
+    const visibilitiesToIndex = this.appConfiguration.config.projectsToIndex.visibilities;
+    for (const visibility of visibilitiesToIndex) {
+      const result = await this.fetchAllPaginatedItems(this.gitLabApiClient.fetchProjects({ visibility }));
+      for (const p of result) {
+        projects.set(p.id, p);
+      }
+    }
+
+    return Array.from(projects.values());
   }
 
   private async fetchAllPaginatedItems<T>(paginated: Promise<Paginated<T>>): Promise<T[]> {

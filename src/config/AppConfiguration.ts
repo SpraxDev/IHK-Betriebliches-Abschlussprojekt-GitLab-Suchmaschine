@@ -1,4 +1,5 @@
 import { singleton } from 'tsyringe';
+import { Project } from '../gitlab/GitLabApiClient';
 
 export type AppConfig = {
   readonly sentryDsn: string;
@@ -13,6 +14,7 @@ export type AppConfig = {
 
   readonly projectsToIndex: {
     readonly topics: string[];
+    readonly visibilities: Project['visibility'][];
   }
 };
 
@@ -33,7 +35,8 @@ export default class AppConfiguration {
       },
 
       projectsToIndex: {
-        topics: this.parseProjectTopicsToIndex()
+        topics: this.parseProjectTopicsToIndex(),
+        visibilities: this.parseProjectVisibilitiesToIndex()
       }
     } satisfies AppConfig);
   }
@@ -53,12 +56,23 @@ export default class AppConfiguration {
   private parseProjectTopicsToIndex(): string[] {
     const topics = this.getAndRemoveEnvVar('INDEX_PROJECT_TOPICS');
     if (topics == null) {
-      return ['searchable'];
+      return ['meta:searchable'];
     }
 
     return topics
       .split(',')
       .filter(topic => topic.length > 0);
+  }
+
+  private parseProjectVisibilitiesToIndex(): Project['visibility'][] {
+    const visibilities = this.getAndRemoveEnvVar('INDEX_PROJECT_VISIBILITIES');
+    if (visibilities == null) {
+      return ['public'];
+    }
+
+    return visibilities
+      .split(',')
+      .filter(visibility => ['public', 'internal', 'private'].includes(visibility)) as Project['visibility'][];
   }
 
   private getAndRemoveEnvVar(name: string): string | undefined {

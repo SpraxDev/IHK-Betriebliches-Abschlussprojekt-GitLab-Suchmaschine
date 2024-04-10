@@ -111,6 +111,11 @@ export interface ProjectCompare {
   web_url: string;
 }
 
+export interface ListProjectFilter {
+  topic?: string;
+  visibility?: Project['visibility'];
+}
+
 export default class GitLabApiClient {
   protected readonly apiBaseUrl: string;
   protected apiToken: string;
@@ -125,9 +130,9 @@ export default class GitLabApiClient {
     this.httpClient = new HttpClient(HttpClient.generateUserAgent(appInfo.name, appInfo.version, true, appInfo.homepage));
   }
 
-  fetchProjects(topic?: string): Promise<Paginated<Project>> {
+  fetchProjects(filter?: ListProjectFilter): Promise<Paginated<Project>> {
     return this.authorizedPaginatedGet<Project>(`${this.apiBaseUrl}/projects`, {
-      topic,
+      ...filter,
       order_by: 'last_activity_at',
       sort: 'desc',
       per_page: 100
