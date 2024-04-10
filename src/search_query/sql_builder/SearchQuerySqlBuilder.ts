@@ -7,9 +7,10 @@ export type SearchQueryResult = {
 }
 
 export type SearchQueryRow = {
-  gitlab_project_id: number;
-  display_name: string;
   full_name: string;
+  default_branch: string;
+  project_url: string;
+  avatar_url: string | null;
   file_path: string;
   content: string;
 }
@@ -17,9 +18,10 @@ export type SearchQueryRow = {
 export default class SearchQuerySqlBuilder {
   private sql = `
 SELECT
-  repositories.gitlab_project_id,
-  repositories.display_name,
   repositories.full_name,
+  repositories.default_branch,
+  repositories.project_url,
+  repositories.avatar_url,
   repository_files.file_path,
   files.content
 FROM

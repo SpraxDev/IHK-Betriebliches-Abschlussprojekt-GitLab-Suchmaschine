@@ -7,8 +7,10 @@ import SearchResultMatchFinder from '../result_highlighter/SearchResultMatchFind
 import SearchQuerySqlBuilder, { SearchQueryRow } from './SearchQuerySqlBuilder';
 
 export type SearchMatch = {
-  projectDisplayName: string;
-  urlToMatch: string;
+  projectGitLabUrl: string;
+  projectGitLabAvatarUrl: string | null;
+  projectGitLabFileUrl: string;
+  projectFullPath: string;
   filePath: string;
   chunks: HighlightedHtmlChunk[];
 }
@@ -41,8 +43,10 @@ export default class SearchQueryExecutor {
     const matchFinder = new SearchResultMatchFinder(query, searchResult.content);
     const highlightedHtmlChunks = this.highlightedHtmlGenerator.generateHtml(searchResult.content, matchFinder.matches);
     return {
-      projectDisplayName: searchResult.full_name,
-      urlToMatch: 'searchResult.urlToMatch',
+      projectGitLabUrl: searchResult.project_url,
+      projectGitLabAvatarUrl: searchResult.avatar_url,
+      projectGitLabFileUrl: `${searchResult.project_url}/-/blob/${searchResult.default_branch}/${searchResult.file_path}?ref_type=heads`, // FIXME: encode file_path individually (so file name with a question mark is properly encoded)
+      projectFullPath: searchResult.full_name,
       filePath: searchResult.file_path,
       chunks: highlightedHtmlChunks
     };

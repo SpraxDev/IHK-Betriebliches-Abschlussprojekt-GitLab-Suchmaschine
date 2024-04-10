@@ -39,7 +39,7 @@ export default class UserPermissionWriter {
         repositoriesWithReadAccess: {
           connectOrCreate: projectIds.map((projectId) => ({
             where: { projectId },
-            create: { projectId, defaultBranch: '', fullName: '', displayName: '' }
+            create: { projectId, defaultBranch: '', fullName: '', displayName: '', projectUrl: '' }
           }))
         }
       }

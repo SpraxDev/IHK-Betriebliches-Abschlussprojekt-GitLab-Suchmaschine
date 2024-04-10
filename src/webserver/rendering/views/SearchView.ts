@@ -1,6 +1,5 @@
 import { singleton } from 'tsyringe';
 import { Token } from '../../../search_query/parser/QueryTokenizer';
-import { HighlightedHtmlChunk } from '../../../search_query/result_highlighter/HighlightedHtmlGenerator';
 import ViewRenderer from '../ViewRenderer';
 import AbstractView from './AbstractView';
 
@@ -8,10 +7,15 @@ export type SearchTemplateData = {
   queryUserInput: string;
   tokenizedQuery: Token[];
   results: {
-    projectDisplayName: string;
-    urlToMatch: string;
+    projectGitLabUrl: string;
+    projectGitLabAvatarUrl: string | null;
+    projectGitLabFileUrl: string;
+    projectFullPath: string;
     filePath: string;
-    chunks: HighlightedHtmlChunk[];
+    chunks: {
+      firstLineNumber: number;
+      html: string;
+    }[];
   }[];
 };
 

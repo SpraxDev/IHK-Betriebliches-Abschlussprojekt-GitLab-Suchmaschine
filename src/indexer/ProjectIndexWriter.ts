@@ -20,12 +20,16 @@ export default class ProjectIndexWriter {
         projectId: project.id,
         defaultBranch: project.default_branch,
         displayName: project.name,
-        fullName: project.path_with_namespace
+        fullName: project.path_with_namespace, // TODO: rename fullName to fullPath
+        projectUrl: project.web_url,
+        avatarUrl: project.avatar_url
       },
       update: {
         defaultBranch: project.default_branch,
         displayName: project.name,
-        fullName: project.path_with_namespace
+        fullName: project.path_with_namespace,
+        projectUrl: project.web_url,
+        avatarUrl: project.avatar_url
       }
     });
   }

@@ -8,10 +8,12 @@ datasource db {
 }
 
 model Repository {
-  projectId     Int    @id @map("gitlab_project_id")
-  displayName   String @map("display_name")
-  fullName      String @map("full_name")
-  defaultBranch String @map("default_branch")
+  projectId     Int     @id @map("gitlab_project_id")
+  displayName   String  @map("display_name")
+  fullName      String  @map("full_name")
+  defaultBranch String  @map("default_branch")
+  projectUrl    String  @map("project_url")
+  avatarUrl     String? @map("avatar_url")
 
   commits             Commit[]
   repositoryFiles     RepositoryFiles[]

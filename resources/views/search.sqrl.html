@@ -37,16 +37,15 @@
     {{ @if(it.results.length > 0) }}
       {{ @each(it.results) => result }}
         <div>
-          projectDisplayName: <pre style="display: inline">{{ result.projectDisplayName }}</pre>
+          {{ @if(result.projectGitLabAvatarUrl) }}<img src="{{ result.projectGitLabAvatarUrl }}" width="64" height="64">&nbsp;{{/if}}<a href="{{ result.projectGitLabUrl }}" target="_blank" rel="noopener nofollow">{{ result.projectFullPath }}</a>&nbsp;·&nbsp;<a href="{{ result.projectGitLabFileUrl }}" target="_blank" rel="noopener nofollow">{{ result.filePath }}</a>
           <br>
-          filePath: <pre style="display: inline">{{ result.filePath }}</pre>
+          <!-- TODO: Use chunk.firstLineNumber to display line number -->
           {{ @each(result.chunks) => chunk, index }}
             <pre>{{* chunk.html }}</pre>
             {{ @if(index < result.chunks.length - 1) }}
               <strong><em>[…]</em></strong>
             {{/if}}
           {{/each}}
-          // TODO: Datei-Ausschnitt zeigen und GitLab-Verlinkung
         </div>
         <hr>
       {{/each}}
