@@ -114,6 +114,7 @@ export interface ProjectCompare {
 export interface ListProjectFilter {
   topic?: string;
   visibility?: Project['visibility'];
+  min_access_level?: number;
 }
 
 export default class GitLabApiClient {

@@ -15,23 +15,17 @@ export default class UserPermissionUpdater {
     const userGitLabApiClient = UserGitLabApiClient.create(accessToken, refreshToken);
     const gitlabUser = await userGitLabApiClient.fetchUser();
 
-    // FIXME: Der Project-List Endpunkt kann nach `min_access_level` filtern - Stattdessen das benutzen
     const projectsWithReadAccess: number[] = [];
-    let projects = await userGitLabApiClient.fetchProjects();
-    while (true) {
-      for (let project of projects.getItems()) {
-        const accessLevel = project.permissions?.project_access?.access_level ?? RoleAccessLevel.NO_ACCESS;
-        if ((gitlabUser.external && accessLevel >= RoleAccessLevel.REPORTER) ||
-          (!gitlabUser.external && accessLevel >= RoleAccessLevel.GUEST)) {
-          projectsWithReadAccess.push(project.id);
-        }
-      }
 
-      if (!projects.hasNextPage()) {
-        break;
+    const minAccessLevel = gitlabUser.external ? RoleAccessLevel.REPORTER : RoleAccessLevel.GUEST;
+    let projects = await userGitLabApiClient.fetchProjects({ min_access_level: minAccessLevel });
+    do {
+      projectsWithReadAccess.push(...projects.getItems().map(project => project.id));
+
+      if (projects.hasNextPage()) {
+        projects = await projects.fetchNext();
       }
-      projects = await projects.fetchNext();
-    }
+    } while (projects.hasNextPage());
 
     await this.databaseClient.$transaction(async (transaction) => {
       const userPermissionWriter = new UserPermissionWriter(transaction);
