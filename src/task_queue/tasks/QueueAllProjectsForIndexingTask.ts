@@ -1,6 +1,8 @@
 import { singleton } from 'tsyringe';
+import AppConfiguration from '../../config/AppConfiguration';
 import AppGitLabApiClient from '../../indexer/gitlab/AppGitLabApiClient';
 import { Project } from '../../indexer/gitlab/GitLabApiClient';
+import Paginated from '../../indexer/gitlab/Paginated';
 import ProjectIndexer from '../../indexer/ProjectIndexer';
 import TaskQueue from '../TaskQueue';
 import IndexProjectTask from './IndexProjectTask';
@@ -9,6 +11,7 @@ import Task, { TaskPriority } from './Task';
 @singleton()
 export default class QueueAllProjectsForIndexingTask extends Task {
   constructor(
+    private readonly appConfiguration: AppConfiguration,
     private readonly gitLabApiClient: AppGitLabApiClient,
     private readonly projectIndexer: ProjectIndexer,
     private readonly taskQueue: TaskQueue
@@ -39,15 +42,28 @@ export default class QueueAllProjectsForIndexingTask extends Task {
   private async findProjectsToIndex(): Promise<Project[]> {
     const projects: Project[] = [];
 
-    let projectsPaginated = await this.gitLabApiClient.fetchProjectList();
-    do {
-      projects.push(...projectsPaginated.getItems());
-
-      if (projectsPaginated.hasNextPage()) {
-        projectsPaginated = await projectsPaginated.fetchNext();
+    const topicsToIndex = this.appConfiguration.config.projectsToIndex.topics;
+    if (topicsToIndex.length > 0) {
+      for (const topic of topicsToIndex) {
+        projects.push(...(await this.fetchAllPaginatedItems(this.gitLabApiClient.fetchProjects(topic))));
       }
-    } while (projectsPaginated.hasNextPage());
+    }
 
     return projects;
+  }
+
+  private async fetchAllPaginatedItems<T>(paginated: Promise<Paginated<T>>): Promise<T[]> {
+    const items: T[] = [];
+
+    let current = await paginated;
+    do {
+      items.push(...current.getItems());
+
+      if (current.hasNextPage()) {
+        current = await current.fetchNext();
+      }
+    } while (current.hasNextPage());
+
+    return items;
   }
 }
