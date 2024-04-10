@@ -24,23 +24,27 @@ export default class ProjectIndexer {
   }
 
   async indexProject(projectId: number): Promise<void> {
-    const storeRepository = await this.databaseClient.repository.findFirst({
-      where: { projectId }
-    });
-
     const project = await this.fetchProject(projectId);
     await this.ensureRepositoryInDatabaseExists(project.id);
 
-    if (storeRepository?.lastIndexedRef != null && storeRepository?.defaultBranch === project.default_branch) {
-      console.debug('Incremental indexing project', project.id);
-      return this.performIncrementalIndex(project);
+    if (await this.wouldProjectNeedFullIndex(project)) {
+      return this.performFullIndex(project);
     }
-
-    console.debug('Full indexing project', project.id);
-    return this.performFullIndex(project);
+    return this.performIncrementalIndex(project);
   }
 
-  async performIncrementalIndex(project: Project): Promise<void> {
+  async wouldProjectNeedFullIndex(project: Project): Promise<boolean> {
+    const storeRepository = await this.databaseClient.repository.findFirst({
+      where: { projectId: project.id },
+      select: { lastIndexedRef: true, defaultBranch: true }
+    });
+
+    return storeRepository == null ||
+      storeRepository.lastIndexedRef == null ||
+      storeRepository.defaultBranch !== project.default_branch;
+  }
+
+  private async performIncrementalIndex(project: Project): Promise<void> {
     const startOfIndexing = await this.databaseClient.fetchNow();
 
     await this.databaseClient.$transaction(async (transaction) => {
