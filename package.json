@@ -26,7 +26,9 @@
 
     "prisma:generate": "prisma generate",
     "prisma:migrate:dev": "prisma migrate dev",
-    "prisma:migrate:deploy": "prisma migrate deploy"
+    "prisma:migrate:deploy": "prisma migrate deploy",
+
+    "docker:build": "docker build --rm --pull --target prod --tag gitlab-suchmaschine:latest ."
   },
   "engines": {
     "node": ">=20.0.0",
