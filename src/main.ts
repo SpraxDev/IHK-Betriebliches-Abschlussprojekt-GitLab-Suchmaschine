@@ -1,6 +1,7 @@
 import 'reflect-metadata';
 import { container } from 'tsyringe';
 import { IS_PRODUCTION } from './constants';
+import DatabaseClient from './database/DatabaseClient';
 import { initSentrySdk, shutdownSentrySdk } from './SentrySdk';
 import TaskQueue from './task_queue/TaskQueue';
 import TaskScheduler from './task_queue/TaskScheduler';
@@ -15,6 +16,10 @@ bootstrap();
 async function bootstrap(): Promise<void> {
   await initSentrySdk();
   registerShutdownHooks();
+
+  if (IS_PRODUCTION) {
+    await container.resolve(DatabaseClient).runDatabaseMigrations();
+  }
 
   taskQueue = container.resolve(TaskQueue);
   taskScheduler = container.resolve(TaskScheduler);

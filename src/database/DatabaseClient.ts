@@ -1,4 +1,5 @@
 import { PrismaClient } from '@prisma/client';
+import ChildProcess from 'node:child_process';
 import { singleton } from 'tsyringe';
 import { setupSentryPrismIntegration } from '../SentrySdk';
 
@@ -25,5 +26,9 @@ export default class DatabaseClient extends PrismaClient {
     }
 
     return records[0].now;
+  }
+
+  async runDatabaseMigrations(): Promise<void> {
+    ChildProcess.execSync('npm run prisma:migrate:deploy', { stdio: 'inherit' });
   }
 }
