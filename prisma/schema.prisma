@@ -41,7 +41,7 @@ model FileChunks {
   order      Int    @map("order")
   content    String @map("content")
 
-  file File @relation(fields: [fileSha256], references: [sha256])
+  file File @relation(fields: [fileSha256], references: [sha256], onDelete: Cascade)
 
   @@id([fileSha256, order])
   @@index([content(ops: raw("gist_trgm_ops"))], type: Gist)
