@@ -44,8 +44,11 @@ export default class FileTypeDetector {
     const childProcessArgs = ['--mime-type', '--preserve-date', '--separator=', '-E', '--raw', '--print0', '-'];
 
     const fileProcess = await this.runFileApp(childProcessArgs, data);
-    const args = fileProcess.stdout.split('\0');
+    if (fileProcess.stdout === '' && fileProcess.stderr === '') {
+      return null;
+    }
 
+    const args = fileProcess.stdout.split('\0');
     if (args.length !== 2) {
       throw new Error(`Invalid output from 'file': ${JSON.stringify({
         stdout: fileProcess.stdout,
@@ -54,7 +57,6 @@ export default class FileTypeDetector {
         childProcessArgs
       })}`);
     }
-
     return args[1].trim() || null;
   }
 
