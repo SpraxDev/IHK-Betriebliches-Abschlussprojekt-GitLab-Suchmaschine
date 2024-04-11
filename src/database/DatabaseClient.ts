@@ -1,5 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 import { singleton } from 'tsyringe';
+import { setupSentryPrismIntegration } from '../SentrySdk';
 
 @singleton()
 export default class DatabaseClient extends PrismaClient {
@@ -10,6 +11,8 @@ export default class DatabaseClient extends PrismaClient {
         timeout: 10 * 60 * 1000
       }
     });
+
+    setupSentryPrismIntegration(this);
   }
 
   /**

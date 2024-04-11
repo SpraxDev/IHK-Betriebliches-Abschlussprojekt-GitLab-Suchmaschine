@@ -36,6 +36,8 @@
     "@fastify/cookie": "^9.3.1",
     "@fastify/session": "^10.7.0",
     "@prisma/client": "5.12.1",
+    "@sentry/node": "^7.109.0",
+    "@sentry/profiling-node": "^7.109.0",
     "@spraxdev/node-commons": "github:SpraxDev/Node-Commons#b29223e6d0f48e7c217f628d818251cbfeb62342",
     "adm-zip": "^0.5.12",
     "fastify": "^4.26.2",

@@ -4,6 +4,7 @@ import Fastify, { type FastifyError, FastifyInstance, type FastifyReply, type Fa
 import { singleton } from 'tsyringe';
 import AppConfiguration from '../config/AppConfiguration';
 import { IS_PRODUCTION } from '../constants';
+import { logAndCaptureError, setupSentryFastifyIntegration } from '../SentrySdk';
 import LoginRoute from './routes/LoginRoute';
 import LogoutRoute from './routes/LogoutRoute';
 import SearchRoute from './routes/SearchRoute';
@@ -55,12 +56,13 @@ export default class FastifyWebServer {
         .send('Not Found');
     });
     this.fastify.setErrorHandler((err: FastifyError, _req: FastifyRequest, reply: FastifyReply) => {
-      console.error(err);
+      logAndCaptureError(err);
 
       return reply
         .code(500)
         .send('Internal Server Error');
     });
+    setupSentryFastifyIntegration(this.fastify);
 
     this.setupRoutes(searchRoute, loginRoute, logoutRoute);
   }

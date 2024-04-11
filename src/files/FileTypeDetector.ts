@@ -2,6 +2,7 @@ import * as MimeType from 'mime-types';
 import ChildProcess from 'node:child_process';
 import Os from 'os';
 import { singleton } from 'tsyringe';
+import { logAndCaptureError } from '../SentrySdk';
 
 @singleton()
 export default class FileTypeDetector {
@@ -18,7 +19,7 @@ export default class FileTypeDetector {
       try {
         fileMimeType = await this.getMimeTypeFromFileApp(fileContent);
       } catch (err) {
-        console.error(err);
+        logAndCaptureError(err);
       }
     }
 

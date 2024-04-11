@@ -1,5 +1,6 @@
 import Path from 'node:path';
 import { singleton } from 'tsyringe';
+import { logAndCaptureError } from '../SentrySdk';
 import FileTypeDetector from './FileTypeDetector';
 
 @singleton()
@@ -56,6 +57,6 @@ export default class TextFileDetector {
       return;
     }
 
-    console.log(`Cannot index file ${JSON.stringify(Path.basename(filePath))} of type ${mimeType}`);
+    logAndCaptureError(`Cannot index file ${JSON.stringify(Path.basename(filePath))} of type ${mimeType}`);
   }
 }

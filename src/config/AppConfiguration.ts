@@ -1,6 +1,7 @@
 import { singleton } from 'tsyringe';
 
 export type AppConfig = {
+  readonly sentryDsn: string;
   readonly sessionSecret: string;
 
   readonly gitlab: {
@@ -17,6 +18,7 @@ export default class AppConfiguration {
 
   constructor() {
     this.config = this.deepFreeze({
+      sentryDsn: process.env.SENTRY_DSN ?? '',
       sessionSecret: process.env.SESSION_SECRET ?? '',
 
       gitlab: {

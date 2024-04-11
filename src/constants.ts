@@ -1,5 +1,6 @@
 import Fs from 'node:fs';
 import Path from 'node:path';
+import { logAndCaptureError } from './SentrySdk';
 
 type AppInfo = { name: string, version: string, homepage: string };
 let appInfo: AppInfo;
@@ -39,13 +40,13 @@ export function getAppInfo(): Readonly<AppInfo> {
     }
 
     if (appInfo.name == 'UNKNOWN-APP-NAME') {
-      console.error(new Error('Unable to parse app name from package.json'));
+      logAndCaptureError(new Error('Unable to parse app name from package.json'));
     }
     if (appInfo.version == 'UNKNOWN-APP-VERSION') {
-      console.error(new Error('Unable to parse app version from package.json'));
+      logAndCaptureError(new Error('Unable to parse app version from package.json'));
     }
     if (appInfo.homepage == '') {
-      console.error(new Error('Unable to parse app homepage from package.json'));
+      logAndCaptureError(new Error('Unable to parse app homepage from package.json'));
     }
   }
 
