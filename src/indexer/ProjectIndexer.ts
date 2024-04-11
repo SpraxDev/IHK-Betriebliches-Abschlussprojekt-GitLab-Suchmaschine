@@ -5,9 +5,9 @@ import { singleton } from 'tsyringe';
 import DatabaseClient from '../database/DatabaseClient';
 import TextFileDetector from '../files/TextFileDetector';
 import TmpFileManager from '../files/TmpFileManager';
-import { logAndCaptureError } from '../SentrySdk';
 import AppGitLabApiClient from '../gitlab/AppGitLabApiClient';
 import { Project } from '../gitlab/GitLabApiClient';
+import { logAndCaptureError } from '../SentrySdk';
 import ProjectIndexWriter from './ProjectIndexWriter';
 
 // FIXME: Refactor class
@@ -25,8 +25,11 @@ export default class ProjectIndexer {
 
   async indexProject(projectId: number): Promise<void> {
     const project = await this.fetchProject(projectId);
-    await this.ensureRepositoryInDatabaseExists(project.id);
+    if (project.empty_repo) {
+      return;
+    }
 
+    await this.ensureRepositoryInDatabaseExists(project.id);
     if (await this.wouldProjectNeedFullIndex(project)) {
       return this.performFullIndex(project);
     }
