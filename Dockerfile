@@ -2,7 +2,10 @@ FROM docker.io/node:20-alpine as base
 
 LABEL maintainer="Christian Koop <c.koop@ryze-digital.de>"
 
-RUN apk add --no-cache file
+RUN apk --no-cache -U upgrade && \
+    apk add --no-cache file && \
+    npm i -g npm --update-notifier false && \
+    npm cache clean --force
 
 RUN mkdir -p /app/ && \
     chown -R node:node /app/
