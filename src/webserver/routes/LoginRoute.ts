@@ -34,11 +34,6 @@ export default class LoginRoute {
           }
 
           const exchangeResult = await this.oAuthAuthenticator.exchangeCode(code);
-          if (exchangeResult == null) {
-            await reply.redirect(this.oAuthAuthenticator.getAuthorizeUrl());
-            return;
-          }
-
           await this.userPermissionUpdater.update(exchangeResult.userId, exchangeResult.access_token, exchangeResult.refresh_token);
 
           // FIXME: delete old session from database (https://github.com/fastify/session/issues/240)

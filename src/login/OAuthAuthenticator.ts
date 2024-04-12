@@ -30,7 +30,7 @@ export default class OAuthAuthenticator {
     return `${this.appConfig.config.appBaseUrl}/login`;
   }
 
-  async exchangeCode(code: string): Promise<(CodeExchangeResponse & { userId: number, displayName: string }) | null> {
+  async exchangeCode(code: string): Promise<(CodeExchangeResponse & { userId: number, displayName: string })> {
     const response = await this.httpClient.post(`${this.appConfig.config.gitlab.apiUrl}/oauth/token`, undefined, {
       client_id: this.appConfig.config.gitlab.clientId,
       client_secret: this.appConfig.config.gitlab.clientSecret,
@@ -48,8 +48,9 @@ export default class OAuthAuthenticator {
       };
     }
 
-    if (response.badRequest && responseBody.error === 'invalid_grant') {
-      return null;
+    if (response.badRequest) {
+      // FIXME: Send BadRequest to user-agent
+      throw new Error(`Failed to exchange code (Status ${response.statusCode}): ${responseBody.error} – ${responseBody.error_description}`);
     }
     throw new Error(`Failed to exchange code (Status ${response.statusCode}): ${JSON.stringify(responseBody)}`);
   }
