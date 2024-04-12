@@ -31,6 +31,10 @@ export default class TextFileDetector {
   }
 
   async isTextFile(fileName: string, fileContent: Buffer): Promise<boolean> {
+    if (fileContent.length === 0 || fileContent.includes(0x0)) {
+      return false;
+    }
+
     const fileType = await this.fileTypeDetector.getMimeType(fileName, fileContent);
     if (fileType == null) {
       return false;
