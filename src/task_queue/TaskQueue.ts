@@ -40,10 +40,11 @@ export default class TaskQueue {
     console.time(timeMessage);
 
     this.runningTask.run()
-      .then(() => console.timeEnd(timeMessage))
       .catch(logAndCaptureError)
       .finally(() => {
+        console.timeEnd(timeMessage);
         this.runningTask = null;
+
         this.tickProcessing();
       });
   }
