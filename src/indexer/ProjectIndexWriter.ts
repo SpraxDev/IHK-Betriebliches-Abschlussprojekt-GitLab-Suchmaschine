@@ -6,6 +6,7 @@ import UnicodeAwareStringChunker from './UnicodeAwareStringChunker';
 
 export default class ProjectIndexWriter {
   private static readonly GIST_INDEX_MAX_BYTES = 8191;
+  private static readonly CHUNK_MAX_BYTES = Math.floor(ProjectIndexWriter.GIST_INDEX_MAX_BYTES / 3);
 
   private readonly stringChunker = new UnicodeAwareStringChunker();
   private readonly transaction: Omit<PrismaClient, ITXClientDenyList>;
@@ -57,7 +58,7 @@ export default class ProjectIndexWriter {
       return;
     }
 
-    const chunkedContent = this.stringChunker.chunk(content, ProjectIndexWriter.GIST_INDEX_MAX_BYTES);
+    const chunkedContent = this.stringChunker.chunk(content, ProjectIndexWriter.CHUNK_MAX_BYTES);
     for (let i = 0; i < chunkedContent.length; ++i) {
       const chunk = chunkedContent[i];
       const chunkContent = chunk.toString('utf-8');
