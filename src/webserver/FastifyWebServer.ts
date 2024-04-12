@@ -7,6 +7,7 @@ import { logAndCaptureError, setupSentryFastifyIntegration } from '../SentrySdk'
 import LoginRoute from './routes/LoginRoute';
 import LogoutRoute from './routes/LogoutRoute';
 import SearchRoute from './routes/SearchRoute';
+import StatusRoute from './routes/StatusRoute';
 import SessionPrismaStore from './SessionPrismaStore';
 
 declare module 'fastify' {
@@ -27,7 +28,8 @@ export default class FastifyWebServer {
     sessionPrismaStore: SessionPrismaStore,
     searchRoute: SearchRoute,
     loginRoute: LoginRoute,
-    logoutRoute: LogoutRoute
+    logoutRoute: LogoutRoute,
+    statusRoute: StatusRoute
   ) {
     this.fastify = Fastify({
       ignoreDuplicateSlashes: true,
@@ -63,7 +65,7 @@ export default class FastifyWebServer {
     });
     setupSentryFastifyIntegration(this.fastify);
 
-    this.setupRoutes(searchRoute, loginRoute, logoutRoute);
+    this.setupRoutes(searchRoute, loginRoute, logoutRoute, statusRoute);
   }
 
   async listen(host: string, port: number): Promise<void> {
@@ -74,10 +76,11 @@ export default class FastifyWebServer {
     await this.fastify.close();
   }
 
-  private setupRoutes(searchRoute: SearchRoute, loginRoute: LoginRoute, logoutRoute: LogoutRoute): void {
+  private setupRoutes(searchRoute: SearchRoute, loginRoute: LoginRoute, logoutRoute: LogoutRoute, statusRoute: StatusRoute): void {
     searchRoute.register(this.fastify);
     loginRoute.register(this.fastify);
     logoutRoute.register(this.fastify);
+    statusRoute.register(this.fastify);
 
     this.fastify.all('/', (request, reply): Promise<void> => {
       return FastifyWebServer.handleRestfully(request, reply, {
