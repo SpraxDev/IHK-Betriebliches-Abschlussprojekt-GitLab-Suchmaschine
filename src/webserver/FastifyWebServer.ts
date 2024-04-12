@@ -3,7 +3,6 @@ import FastifySession from '@fastify/session';
 import Fastify, { type FastifyError, FastifyInstance, type FastifyReply, type FastifyRequest } from 'fastify';
 import { singleton } from 'tsyringe';
 import AppConfiguration from '../config/AppConfiguration';
-import { IS_PRODUCTION } from '../constants';
 import { logAndCaptureError, setupSentryFastifyIntegration } from '../SentrySdk';
 import LoginRoute from './routes/LoginRoute';
 import LogoutRoute from './routes/LogoutRoute';
@@ -42,7 +41,7 @@ export default class FastifyWebServer {
       secret: appConfig.config.sessionSecret,
       cookie: {
         httpOnly: true,
-        secure: IS_PRODUCTION,
+        secure: appConfig.config.appBaseUrl.startsWith('https://'),
         sameSite: 'lax',
         maxAge: 30 * 24 * 60 * 60 * 1000 /* 30d */
       },
