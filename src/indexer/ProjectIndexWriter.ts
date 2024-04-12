@@ -60,6 +60,8 @@ export default class ProjectIndexWriter {
     const chunkedContent = this.stringChunker.chunk(content, ProjectIndexWriter.GIST_INDEX_MAX_BYTES);
     for (let i = 0; i < chunkedContent.length; ++i) {
       const chunk = chunkedContent[i];
+      const chunkContent = chunk.toString('utf-8');
+
       await this.transaction.fileChunks.upsert({
         select: { fileSha256: true },
 
@@ -72,10 +74,10 @@ export default class ProjectIndexWriter {
         create: {
           fileSha256,
           order: i,
-          content: chunk
+          content: chunkContent
         },
         update: {
-          content: chunk
+          content: chunkContent
         }
       });
     }

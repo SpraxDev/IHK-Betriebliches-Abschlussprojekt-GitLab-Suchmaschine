@@ -2,21 +2,29 @@ import { singleton } from 'tsyringe';
 
 @singleton()
 export default class UnicodeAwareStringChunker {
-  chunk(str: string, maxBytes: number): string[] {
-    const chunks: string[] = [];
+  chunk(str: string, maxBytes: number): Buffer[] {
+    const strBuffer = Buffer.from(str);
+    const chunks: Buffer[] = [];
     let index = 0;
 
+    let chunkStart = 0;
+    let chunkBytes = 0;
     while (index < str.length) {
-      let size = Math.min(maxBytes, str.length - index);
-      let chunk = str.slice(index, index + size);
+      const char = str[index];
+      const charBytes = Buffer.byteLength(char);
 
-      while (size > 0 && chunk.codePointAt(size - 1)! > 127) {
-        size--;
-        chunk = str.slice(index, index + size);
+      if ((chunkBytes + charBytes) > maxBytes) {
+        chunks.push(strBuffer.subarray(chunkStart, chunkStart + chunkBytes));
+        chunkStart += chunkBytes;
+        chunkBytes = 0;
       }
 
-      chunks.push(chunk);
-      index += size;
+      chunkBytes += charBytes;
+      ++index;
+    }
+
+    if (chunkBytes > 0) {
+      chunks.push(strBuffer.subarray(chunkStart, chunkStart + chunkBytes));
     }
 
     return chunks;
