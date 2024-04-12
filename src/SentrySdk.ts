@@ -22,6 +22,14 @@ export function captureError(error: unknown): void {
   Sentry.captureException(error);
 }
 
+export function logAndCaptureWarning(message: string, data?: Record<string, unknown>): void {
+  Sentry.captureMessage(message, {
+    level: 'warning',
+    extra: data
+  });
+  console.warn(message);
+}
+
 export async function initSentrySdk(): Promise<void> {
   const dsn = container.resolve(AppConfiguration).config.sentryDsn;
   if (dsn == '') {

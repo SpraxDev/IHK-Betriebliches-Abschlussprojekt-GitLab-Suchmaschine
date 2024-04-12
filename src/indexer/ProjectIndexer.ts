@@ -1,3 +1,4 @@
+import * as Sentry from '@sentry/node';
 import AdmZip from 'adm-zip';
 import Crypto from 'node:crypto';
 import Path from 'node:path';
@@ -7,7 +8,7 @@ import TextFileDetector from '../files/TextFileDetector';
 import TmpFileManager from '../files/TmpFileManager';
 import AppGitLabApiClient from '../gitlab/AppGitLabApiClient';
 import { Project } from '../gitlab/GitLabApiClient';
-import { logAndCaptureError } from '../SentrySdk';
+import { logAndCaptureWarning } from '../SentrySdk';
 import ProjectIndexWriter from './ProjectIndexWriter';
 
 // FIXME: Refactor class
@@ -62,7 +63,7 @@ export default class ProjectIndexer {
         return;
       }
       if (projectCompare.compare_timeout) {
-        logAndCaptureError(`Incremental indexing fetched a timed_out compare from GitLab for project ${project.id} – falling back to full indexing`);
+        logAndCaptureWarning(`Incremental indexing fetched a timed_out compare from GitLab for project ${project.id} – falling back to full indexing`);
         return this.performFullIndex(project);
       }
 
@@ -97,7 +98,6 @@ export default class ProjectIndexer {
           continue;
         }
 
-        console.log('Incremental indexing file', filePath);
         const fileSha256 = this.calculateSha256(fileContent);
         await indexWriter.createOrUpdateFile(fileSha256, fileContent.toString('utf-8'));
         await indexWriter.createOrUpdateRepositoryFile(project, filePath, fileSha256);

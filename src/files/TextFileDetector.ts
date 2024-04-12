@@ -1,6 +1,6 @@
 import Path from 'node:path';
 import { singleton } from 'tsyringe';
-import { logAndCaptureError } from '../SentrySdk';
+import { logAndCaptureWarning } from '../SentrySdk';
 import FileTypeDetector from './FileTypeDetector';
 
 @singleton()
@@ -52,11 +52,10 @@ export default class TextFileDetector {
       || TextFileDetector.NON_TEXT_TYPES.includes(mimeType)) {
       return;
     }
-
     if (mimeType == 'application/octet-stream' && TextFileDetector.NON_TEXT_EXTENSIONS.includes(Path.extname(filePath).toLowerCase())) {
       return;
     }
 
-    logAndCaptureError(`Cannot index file ${JSON.stringify(Path.basename(filePath))} of type ${mimeType}`);
+    logAndCaptureWarning(`Cannot index file of type ${mimeType}`, { fileExtension: Path.extname(filePath), mimeType });
   }
 }
