@@ -1,5 +1,8 @@
 import { HttpClient, HttpResponse } from '@spraxdev/node-commons';
 import Fs from 'node:fs';
+import Http from 'node:http';
+import Https from 'node:https';
+import Stream from 'node:stream';
 import { getAppInfo } from '../constants';
 import Paginated from './Paginated';
 
@@ -154,17 +157,14 @@ export default class GitLabApiClient {
   }
 
   async fetchProjectArchive(projectId: number, ref: string, targetPath: string): Promise<void> {
-    // TODO: The HttpClient is not intended to be used for larger response bodies and should be replaced with an API that supports #pipe
-    const apiRequest = await this.authorizedGet(`${this.apiBaseUrl}/projects/${projectId}/repository/archive.zip`, { sha: ref });
-    if (!apiRequest.ok) {
-      throw new Error(`Failed to fetch project archive for ID ${projectId} and ref ${ref} (Status ${apiRequest.status})`);
-    }
-
-    await Fs.promises.writeFile(targetPath, apiRequest.body);
+    return this.authorizedFileDownload(`${this.apiBaseUrl}/projects/${projectId}/repository/archive.zip?sha=${encodeURIComponent(ref)}`, targetPath);
   }
 
   async compareProjectRefs(projectId: number, from: string, to: string): Promise<ProjectCompare> {
-    const apiRequest = await this.authorizedGet(`${this.apiBaseUrl}/projects/${projectId}/repository/compare?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`);
+    const apiRequest = await this.authorizedGet(
+      `${this.apiBaseUrl}/projects/${projectId}/repository/compare`,
+      { from, to }
+    );
     if (!apiRequest.ok) {
       throw new Error(`Failed to fetch project compare for ID ${projectId} and refs {from}..{to} (Status ${apiRequest.status})`);
     }
@@ -200,6 +200,28 @@ export default class GitLabApiClient {
     }
 
     return this.httpClient.get(url, { Authorization: `Bearer ${this.apiToken}` });
+  }
+
+  async authorizedFileDownload(url: string, destPath: string): Promise<void> {
+    return new Promise((resolve, reject) => {
+      const get = url.startsWith('https://') ? Https.get : Http.get;
+      get(url, { headers: { Authorization: `Bearer ${this.apiToken}` } }, (res) => {
+        if (res.statusCode !== 200) {
+          throw new Error(`Failed to fetch project archive from ${url} (Status ${res.statusCode})`);
+        }
+
+        const fileStream = Fs.createWriteStream(destPath);
+        Stream.pipeline(res, fileStream, (err) => {
+          if (err) {
+            reject(err);
+            return;
+          }
+
+          resolve();
+        });
+      })
+        .on('error', reject);
+    });
   }
 
   private async parseLinkHeader(linkHeader: string): Promise<{ [key: string]: string }> {
