@@ -27,8 +27,7 @@ export default class OAuthAuthenticator {
   }
 
   public getRedirectUri(): string {
-    // FIXME
-    return 'http://127.0.0.1:8087/login';
+    return `${this.appConfig.config.appBaseUrl}/login`;
   }
 
   async exchangeCode(code: string): Promise<(CodeExchangeResponse & { userId: number, displayName: string }) | null> {

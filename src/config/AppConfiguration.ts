@@ -4,6 +4,7 @@ import { Project } from '../gitlab/GitLabApiClient';
 export type AppConfig = {
   readonly sentryDsn: string;
   readonly sessionSecret: string;
+  readonly appBaseUrl: string;
 
   readonly gitlab: {
     readonly apiUrl: string;  // TODO: rename into baseUrl
@@ -26,9 +27,10 @@ export default class AppConfiguration {
     this.config = this.deepFreeze({
       sentryDsn: this.getAndRemoveEnvVar('SENTRY_DSN') ?? '',
       sessionSecret: this.getAndRemoveEnvVar('SESSION_SECRET') ?? '',
+      appBaseUrl: this.parseBaseUrl('APP_BASE_URL'),
 
       gitlab: {
-        apiUrl: this.parseGitLabBaseUrl(),
+        apiUrl: this.parseBaseUrl('GITLAB_BASE_URL'),
         apiToken: this.getAndRemoveEnvVar('GITLAB_API_TOKEN') ?? '',
         clientId: this.getAndRemoveEnvVar('GITLAB_CLIENT_ID') ?? '',
         clientSecret: this.getAndRemoveEnvVar('GITLAB_CLIENT_SECRET') ?? ''
@@ -41,8 +43,8 @@ export default class AppConfiguration {
     } satisfies AppConfig);
   }
 
-  private parseGitLabBaseUrl(): string {
-    const baseUrl = this.getAndRemoveEnvVar('GITLAB_BASE_URL');
+  private parseBaseUrl(envKey: string): string {
+    const baseUrl = this.getAndRemoveEnvVar(envKey);
     if (baseUrl == null) {
       return '';
     }

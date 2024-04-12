@@ -1,5 +1,6 @@
 import 'reflect-metadata';
 import { container } from 'tsyringe';
+import AppConfiguration from './config/AppConfiguration';
 import { IS_PRODUCTION } from './constants';
 import DatabaseClient from './database/DatabaseClient';
 import { initSentrySdk, shutdownSentrySdk } from './SentrySdk';
@@ -32,7 +33,7 @@ async function bootstrap(): Promise<void> {
   if (!IS_PRODUCTION) {
     console.log('RUNNING IN DEVELOPMENT MODE');
   }
-  console.log(`Application is ready to accept requests (http://127.0.0.1:8087/)`);  // TODO: Replace with actual base URL
+  console.log(`Application is ready to accept requests (${container.resolve(AppConfiguration).config.appBaseUrl}/)`);
 }
 
 function registerShutdownHooks(): void {
