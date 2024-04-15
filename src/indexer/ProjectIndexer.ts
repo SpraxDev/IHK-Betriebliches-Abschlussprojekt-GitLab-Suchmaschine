@@ -1,11 +1,11 @@
-import * as Sentry from '@sentry/node';
 import AdmZip from 'adm-zip';
 import Crypto from 'node:crypto';
+import Fs from 'node:fs';
 import Path from 'node:path';
 import { singleton } from 'tsyringe';
 import DatabaseClient from '../database/DatabaseClient';
 import TextFileDetector from '../files/TextFileDetector';
-import TmpFileManager from '../files/TmpFileManager';
+import TmpFileManager, { TmpDir } from '../files/TmpFileManager';
 import AppGitLabApiClient from '../gitlab/AppGitLabApiClient';
 import { Project } from '../gitlab/GitLabApiClient';
 import { logAndCaptureWarning } from '../SentrySdk';
@@ -31,10 +31,16 @@ export default class ProjectIndexer {
     }
 
     await this.ensureRepositoryInDatabaseExists(project.id);
-    if (await this.wouldProjectNeedFullIndex(project)) {
-      return this.performFullIndex(project);
+
+    const tmpDir = await this.tmpFileManager.createTmpDir();
+    try {
+      if (await this.wouldProjectNeedFullIndex(project)) {
+        return await this.performFullIndex(project, tmpDir);
+      }
+      return await this.performIncrementalIndex(project, tmpDir);
+    } finally {
+      await Fs.promises.rm(tmpDir.path, { recursive: true });
     }
-    return this.performIncrementalIndex(project);
   }
 
   async wouldProjectNeedFullIndex(project: Project): Promise<boolean> {
@@ -48,7 +54,7 @@ export default class ProjectIndexer {
       storeRepository.defaultBranch !== project.default_branch;
   }
 
-  private async performIncrementalIndex(project: Project): Promise<void> {
+  private async performIncrementalIndex(project: Project, tmpDir: TmpDir): Promise<void> {
     const startOfIndexing = await this.databaseClient.fetchNow();
 
     await this.databaseClient.$transaction(async (transaction) => {
@@ -64,12 +70,11 @@ export default class ProjectIndexer {
       }
       if (projectCompare.compare_timeout) {
         logAndCaptureWarning(`Incremental indexing fetched a timed_out compare from GitLab for project ${project.id} – falling back to full indexing`);
-        return this.performFullIndex(project);
+        return this.performFullIndex(project, tmpDir);
       }
 
       const indexWriter = new ProjectIndexWriter(transaction);
 
-      const tmpDir = await this.tmpFileManager.createTmpDir();
       const archiveZipPath = Path.join(tmpDir.path, 'archive.zip');
       await this.appGitLabApiClient.fetchProjectArchive(project.id, project.default_branch, archiveZipPath);
 
@@ -108,10 +113,9 @@ export default class ProjectIndexer {
     });
   }
 
-  private async performFullIndex(project: Project): Promise<void> {
+  private async performFullIndex(project: Project, tmpDir: TmpDir): Promise<void> {
     const startOfIndexing = await this.databaseClient.fetchNow();
 
-    const tmpDir = await this.tmpFileManager.createTmpDir();
     const archiveZipPath = Path.join(tmpDir.path, 'archive.zip');
     await this.appGitLabApiClient.fetchProjectArchive(project.id, project.default_branch, archiveZipPath);
 
