@@ -1,9 +1,14 @@
+import { singleton } from 'tsyringe';
 import { logAndCaptureError } from '../SentrySdk';
 import Task from './tasks/Task';
 
+@singleton()
 export default class TaskQueue {
   private readonly queue: Task[] = [];
   private runningTask: Task | null = null;
+
+  private processedTaskCount = 0;
+  private erroredTaskCount = 0;
 
   add(tasks: Task | Task[]): void {
     if (!Array.isArray(tasks)) {
@@ -29,6 +34,22 @@ export default class TaskQueue {
     this.queue.length = 0;
   }
 
+  getProcessedTaskCount(): number {
+    return this.processedTaskCount;
+  }
+
+  getErroredTaskCount(): number {
+    return this.erroredTaskCount;
+  }
+
+  getRunningTaskName(): string | null {
+    return this.runningTask?.displayName ?? null;
+  }
+
+  getQueuedTaskNames(): string[] {
+    return this.queue.map(task => task.displayName);
+  }
+
   private tickProcessing(): void {
     if (this.runningTask != null || this.queue.length === 0) {
       return;
@@ -40,10 +61,14 @@ export default class TaskQueue {
     console.time(timeMessage);
 
     this.runningTask.run()
-      .catch(logAndCaptureError)
+      .catch((err) => {
+        ++this.erroredTaskCount;
+        logAndCaptureError(err);
+      })
       .finally(() => {
         console.timeEnd(timeMessage);
         this.runningTask = null;
+        ++this.processedTaskCount;
 
         this.tickProcessing();
       });

@@ -9,6 +9,7 @@ import LogoutRoute from './routes/LogoutRoute';
 import SearchRoute from './routes/SearchRoute';
 import StatsRoute from './routes/StatsRoute';
 import StatusRoute from './routes/StatusRoute';
+import TasksRoute from './routes/TasksRoute';
 import SessionPrismaStore from './SessionPrismaStore';
 
 declare module 'fastify' {
@@ -31,6 +32,7 @@ export default class FastifyWebServer {
     loginRoute: LoginRoute,
     logoutRoute: LogoutRoute,
     statsRoute: StatsRoute,
+    tasksRoute: TasksRoute,
     statusRoute: StatusRoute
   ) {
     this.fastify = Fastify({
@@ -67,7 +69,7 @@ export default class FastifyWebServer {
     });
     setupSentryFastifyIntegration(this.fastify);
 
-    this.setupRoutes(searchRoute, loginRoute, logoutRoute, statsRoute, statusRoute);
+    this.setupRoutes(searchRoute, loginRoute, logoutRoute, statsRoute, tasksRoute, statusRoute);
   }
 
   async listen(host: string, port: number): Promise<void> {
@@ -78,11 +80,12 @@ export default class FastifyWebServer {
     await this.fastify.close();
   }
 
-  private setupRoutes(searchRoute: SearchRoute, loginRoute: LoginRoute, logoutRoute: LogoutRoute, statsRoute: StatsRoute, statusRoute: StatusRoute): void {
+  private setupRoutes(searchRoute: SearchRoute, loginRoute: LoginRoute, logoutRoute: LogoutRoute, statsRoute: StatsRoute, tasksRoute: TasksRoute, statusRoute: StatusRoute): void {
     searchRoute.register(this.fastify);
     loginRoute.register(this.fastify);
     logoutRoute.register(this.fastify);
     statsRoute.register(this.fastify);
+    tasksRoute.register(this.fastify);
     statusRoute.register(this.fastify);
 
     this.fastify.all('/', (request, reply): Promise<void> => {
