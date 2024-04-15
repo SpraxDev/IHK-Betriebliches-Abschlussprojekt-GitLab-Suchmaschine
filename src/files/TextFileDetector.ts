@@ -6,25 +6,47 @@ import FileTypeDetector from './FileTypeDetector';
 @singleton()
 export default class TextFileDetector {
   private static readonly TEXT_TYPES = [
-    'application/json',
-    'application/xml',
     'application/csv',
-    'application/x-httpd-php',
-    'application/x-sql',
     'application/javascript',
+    'application/json',
+    'application/pgp-keys',
+    'application/pgp-signature',
+    'application/postscript',
+    'application/vnd.cups-ppd',
+    'application/vnd.font-fontforge-sfd',
+    'application/x-httpd-php',
+    'application/x-mswinurl',
+    'application/x-ndjson',
     'application/x-sh',
+    'application/x-sql',
+    'application/x-sylk',
+    'application/x-wine-extension-ini',
     'application/xliff+xml',
-    'application/x-empty'
+    'application/xml',
   ];
   private static readonly NON_TEXT_TYPES = [
+    'application/gzip',
+    'application/octet-stream',
+    'application/pdf',  // TODO: Add support? maybe we can convert it into a basic/simple text representation
+    'application/vnd.android.package-archive',
     'application/vnd.microsoft.portable-executable',
-    'application/vnd.ms-fontobject'
+    'application/vnd.ms-fontobject',
+    'application/vnd.ms-opentype',
+    'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    'application/x-empty',
+    'application/x-gettext-translation',
+    'application/x-java-keystore',
+    'application/x-ole-storage',
+    'application/x-shockwave-flash',
+    'application/zip',
   ];
   private static readonly NON_TEXT_EXTENSIONS = [
+    '.eot',
+    '.swf',
     '.woff',
     '.woff2',
-    '.eot',
-    '.swf'
   ];
 
   constructor(private readonly fileTypeDetector: FileTypeDetector) {
