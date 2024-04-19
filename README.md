@@ -37,7 +37,7 @@ word ::= char+ | '"' char+ '"' | qualifier | regex
 tokenizer output:
 word | '(' | ')' | '&&' | '||' | 'NOT'
 
-term ::= NOT? (word | '(' andOperation ')')
+term ::= NOT? (word | '(' andOperation+ ')')
 orOperation ::= term ('||' term)*
 andOperation ::= orOperation ('&&' orOperation)*
 
