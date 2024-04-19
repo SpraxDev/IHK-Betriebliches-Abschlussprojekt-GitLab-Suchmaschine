@@ -39,7 +39,7 @@ export default class ProjectIndexer {
       }
       return await this.performIncrementalIndex(project, tmpDir);
     } finally {
-      await Fs.promises.rm(tmpDir.path, { recursive: true });
+      await tmpDir.cleanup();
     }
   }
 
