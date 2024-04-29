@@ -32,6 +32,7 @@ export default class TextFileDetector {
     'application/vnd.microsoft.portable-executable',
     'application/vnd.ms-fontobject',
     'application/vnd.ms-opentype',
+    'application/vnd.ms-powerpoint',
     'application/vnd.openxmlformats-officedocument.presentationml.presentation',
     'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
     'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
