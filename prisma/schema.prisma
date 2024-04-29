@@ -33,6 +33,8 @@ model File {
   repositoryFiles RepositoryFiles[]
   fileChunks      FileChunks[]
 
+  @@index([createdAt(sort: Desc)])
+  @@index([sha256], type: BTree)
   @@map("files")
 }
 
@@ -44,7 +46,8 @@ model FileChunks {
   file File @relation(fields: [fileSha256], references: [sha256], onDelete: Cascade)
 
   @@id([fileSha256, order])
-  @@index([content(ops: raw("gist_trgm_ops"))], type: Gist)
+  @@index([content(ops: raw("gin_trgm_ops"))], type: Gin)
+  @@index([order(sort: Asc)])
   @@map("file_chunks")
 }
 
@@ -60,8 +63,9 @@ model RepositoryFiles {
   file       File       @relation(fields: [fileSha256], references: [sha256])
 
   @@id([projectId, filePath, branch])
-  @@index([filePath(ops: raw("gist_trgm_ops"))], type: Gist)
-  @@index([fileName(ops: raw("gist_trgm_ops"))], type: Gist)
+  @@index([filePath(ops: raw("gin_trgm_ops"))], type: Gin)
+  @@index([fileName(ops: raw("gin_trgm_ops"))], type: Gin)
+  @@index([fileSha256], type: BTree)
   @@map("repository_files")
 }
 
