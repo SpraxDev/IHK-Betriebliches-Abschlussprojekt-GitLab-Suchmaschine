@@ -68,8 +68,8 @@ WHERE
     }
     this.sql += ')';
 
-    this.sql += ` GROUP BY ${SearchQuerySqlBuilder.FIELDS_TO_SELECT.join(', ')}, files.created_at`;
-    this.sql += ' ORDER BY files.created_at DESC;';
+    this.sql += `\nGROUP BY\n  ${SearchQuerySqlBuilder.FIELDS_TO_SELECT.join(',\n  ')},\n  files.created_at`;
+    this.sql += '\nORDER BY\n  files.created_at DESC;';
   }
 
   private visitAnd(and: And): void {
