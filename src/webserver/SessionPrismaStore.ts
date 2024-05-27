@@ -55,6 +55,6 @@ export default class SessionPrismaStore implements SessionStore {
 
   async deleteExpiredSessions(): Promise<void> {
     const now = await this.databaseClient.fetchNow();
-    await this.databaseClient.sessions.deleteMany({ where: { expires: { lt: now } } });
+    await this.databaseClient.sessions.deleteMany({ where: { expires: { lte: now } } });
   }
 }

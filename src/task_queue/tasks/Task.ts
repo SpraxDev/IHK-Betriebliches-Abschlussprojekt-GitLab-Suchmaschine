@@ -1,4 +1,5 @@
 export enum TaskPriority {
+  NORMAL = -10,
   HIGH = 0,
   INCREMENTAL_INDEX = 10,
   FULL_INDEX = 20,
