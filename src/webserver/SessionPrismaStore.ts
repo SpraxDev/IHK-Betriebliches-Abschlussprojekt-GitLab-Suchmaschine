@@ -35,7 +35,14 @@ export default class SessionPrismaStore implements SessionStore {
   }
 
   get(sessionId: string, callback: CallbackSession): void {
-    this.databaseClient.sessions.findUnique({ where: { id: sessionId } })
+    this.databaseClient.fetchNow()
+      .then((now) =>
+        this.databaseClient.sessions.findUnique({
+          where: {
+            id: sessionId,
+            expires: { gt: now }
+          }
+        }))
       .then((session) => callback(null, (session?.data ?? null) as Session | null))
       .catch((err) => callback(err, null));
   }
